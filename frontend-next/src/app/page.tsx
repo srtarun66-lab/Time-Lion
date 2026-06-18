@@ -11,7 +11,7 @@ async function getAllProducts(): Promise<Product[]> {
   try {
     const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[];
+    return snapshot.docs.map(doc => ({ _id: doc.id, ...doc.data() })) as unknown as Product[];
   } catch (error) {
     console.error('Error fetching products from Firebase:', error);
     return [];

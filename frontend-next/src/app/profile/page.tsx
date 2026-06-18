@@ -28,7 +28,7 @@ const OTHER_CITIES = [
 ];
 
 export default function ProfilePage() {
-  const { user, login, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
   const { cart, wishlist } = useCart();
   const router = useRouter();
   

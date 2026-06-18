@@ -12,7 +12,7 @@ async function getCategoryProducts(slug: string): Promise<Product[]> {
       q = query(collection(db, 'products'), where('category', '==', slug), orderBy('createdAt', 'desc'));
     }
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[];
+    return snapshot.docs.map(doc => ({ _id: doc.id, ...doc.data() })) as unknown as Product[];
   } catch (error) {
     console.error('Error fetching category products from Firebase:', error);
     return [];
