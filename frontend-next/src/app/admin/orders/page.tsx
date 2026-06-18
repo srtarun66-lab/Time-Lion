@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc, updateDoc } from 'firebase/firestore';
 
 const STATUSES = ['', 'Processing', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'];
 
@@ -43,6 +43,23 @@ export default function OrdersPage() {
 
   const updateStatus = async (id: string, newStatus: string) => {
     try {
+      const order = orders.find(o => o._id === id);
+
+      if (order && newStatus === 'Delivered' && order.status !== 'Delivered') {
+        const itemsToUpdate = order.items || [];
+        for (const item of itemsToUpdate) {
+          if (item.productId) {
+            const productRef = doc(db, 'products', item.productId);
+            const pDoc = await getDoc(productRef);
+            if (pDoc.exists()) {
+              const currentStock = pDoc.data().stock || 0;
+              const newStock = Math.max(0, currentStock - (item.quantity || 1));
+              await updateDoc(productRef, { stock: newStock });
+            }
+          }
+        }
+      }
+
       await updateDoc(doc(db, 'orders', id), { status: newStatus });
       window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: `Status → ${newStatus}`, type: 'success' } }));
       setOrders(orders.map(o => o._id === id ? { ...o, status: newStatus } : o));

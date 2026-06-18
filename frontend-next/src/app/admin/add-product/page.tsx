@@ -126,7 +126,7 @@ export default function AddProductPage() {
     const payload: any = {
       name, category, price: currentPrice,
       originalPrice: (form.elements.namedItem('pOriginal') as HTMLInputElement).value
-        ? Number((form.elements.namedItem('pOriginal') as HTMLInputElement).value) : undefined,
+        ? Number((form.elements.namedItem('pOriginal') as HTMLInputElement).value) : null,
       stock: (form.elements.namedItem('pStock') as HTMLInputElement).value
         ? Number((form.elements.namedItem('pStock') as HTMLInputElement).value) : 10,
       rating: 0,
@@ -152,8 +152,8 @@ export default function AddProductPage() {
       form.reset();
       setImgPreview(''); setImageUrl(''); setImgStatus(''); setBadgeType('');
       setCategory(''); setComboP1(''); setComboP2(''); setSuggestedPrice('');
-    } catch {
-      window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Cannot reach server.', type: 'error' } }));
+    } catch (err: any) {
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Error: ' + err.message, type: 'error' } }));
     }
     setLoading(false);
   };

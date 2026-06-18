@@ -61,7 +61,7 @@ export default function EditProductModal({ product, onClose, onSave }: { product
 
     const payload = {
       name, category, price,
-      originalPrice: (form.elements.namedItem('pOriginal') as HTMLInputElement).value ? Number((form.elements.namedItem('pOriginal') as HTMLInputElement).value) : undefined,
+      originalPrice: (form.elements.namedItem('pOriginal') as HTMLInputElement).value ? Number((form.elements.namedItem('pOriginal') as HTMLInputElement).value) : null,
       stock: (form.elements.namedItem('pStock') as HTMLInputElement).value ? Number((form.elements.namedItem('pStock') as HTMLInputElement).value) : 10,
       rating: product.rating || 0,
       badge: badgeType === 'Others' ? ((form.elements.namedItem('pBadgeCustom') as HTMLInputElement)?.value.trim() || '') : badgeType,
