@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, collection, query, where, getDocs, updateDoc, arrayUnion } from 'firebase/firestore';
 
 export default function ProductDetailsPage() {
   const params = useParams();
@@ -24,10 +26,12 @@ export default function ProductDetailsPage() {
 
   const fetchProduct = async () => {
     try {
-      const res = await fetch(`/api/products/${id}`);
-      const data = await res.json();
-      if (data.success) {
-        setProduct(data.product);
+      const docRef = doc(db, 'products', id);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setProduct({ _id: docSnap.id, ...docSnap.data() });
+      } else {
+        setProduct(null);
       }
     } catch (err) {
       console.error(err);
@@ -39,9 +43,32 @@ export default function ProductDetailsPage() {
   const checkPurchase = async () => {
     if (!user) return;
     try {
-      const res = await fetch(`/api/orders/check-purchase?email=${encodeURIComponent(user.email || '')}&phone=${encodeURIComponent(user.phone || '')}&productId=${id}`);
-      const data = await res.json();
-      if (data.success) setHasPurchased(data.hasPurchased);
+      const ordersRef = collection(db, 'orders');
+      let purchased = false;
+      
+      if (user.email) {
+        const q = query(ordersRef, where('email', '==', user.email));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+          const order = doc.data();
+          if (order.items && order.items.some((item: any) => item._id === id || item.id === id)) {
+            purchased = true;
+          }
+        });
+      }
+
+      if (!purchased && user.phone) {
+        const q = query(ordersRef, where('phone', '==', user.phone));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+          const order = doc.data();
+          if (order.items && order.items.some((item: any) => item._id === id || item.id === id)) {
+            purchased = true;
+          }
+        });
+      }
+
+      setHasPurchased(purchased);
     } catch (err) {
       console.error(err);
     }
@@ -60,25 +87,34 @@ export default function ProductDetailsPage() {
     if (!user) return;
     setSubmitting(true);
     try {
-      const res = await fetch(`/api/products/${id}/reviews`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userName: user.fullName || 'User',
-          email: user.email || user.phone,
-          rating,
-          comment,
-          isVerifiedPurchase: hasPurchased
-        })
+      const review = {
+        userName: user.fullName || 'User',
+        email: user.email || user.phone,
+        rating,
+        comment,
+        isVerifiedPurchase: hasPurchased,
+        createdAt: new Date().toISOString()
+      };
+      
+      const productRef = doc(db, 'products', id);
+      await updateDoc(productRef, {
+        reviews: arrayUnion(review)
       });
-      const data = await res.json();
-      if (data.success) {
-        setProduct(data.product);
+      
+      const docSnap = await getDoc(productRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const updatedReviews = data.reviews || [];
+        const newAvgRating = updatedReviews.length > 0 
+          ? updatedReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / updatedReviews.length
+          : 0;
+          
+        await updateDoc(productRef, { rating: newAvgRating });
+        setProduct({ _id: docSnap.id, ...data, rating: newAvgRating });
+        
         setComment('');
         setRating(5);
         window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Review submitted successfully!', type: 'success' } }));
-      } else {
-        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: data.message || 'Error', type: 'error' } }));
       }
     } catch (err) {
       console.error(err);

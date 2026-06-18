@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-
+import { db } from '@/lib/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 export default function OrdersPage() {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
@@ -28,17 +29,22 @@ export default function OrdersPage() {
     if (showSpinner) setLoading(true);
     else setIsSilentLoading(true);
     try {
-      const res = await fetch(`/api/orders?phone=${phone}`);
-      if (!res.ok) throw new Error('Backend not ok');
-      const data = await res.json();
-      if (data.success) {
-        setOrders(data.orders);
-      } else {
-        setOrders([]);
-      }
+      const q = query(
+        collection(db, 'orders'),
+        where('phone', '==', phone)
+      );
+      const querySnapshot = await getDocs(q);
+      const fetchedOrders: any[] = [];
+      querySnapshot.forEach((doc) => {
+        fetchedOrders.push({ _id: doc.id, ...doc.data() });
+      });
+      // Sort by createdAt descending
+      fetchedOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      setOrders(fetchedOrders);
     } catch (err) {
       // Backend is likely offline, gracefully fallback to mock orders
-      console.warn("Backend offline. Loading mock orders.");
+      console.warn("Backend offline. Loading mock orders.", err);
       setOrders([
         {
           _id: "mock_order_12345",
