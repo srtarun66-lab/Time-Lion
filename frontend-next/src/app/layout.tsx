@@ -3,11 +3,7 @@ import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { AuthProvider } from '@/context/AuthContext';
 import ToastContainer from '@/components/Toast';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import CartSidebar from '@/components/CartSidebar';
 import NextTopLoader from 'nextjs-toploader';
-import OnboardingModal from '@/components/OnboardingModal';
 
 import { Cinzel, Poppins, Space_Grotesk } from 'next/font/google';
 
@@ -48,12 +44,8 @@ export default function RootLayout({
         <NextTopLoader color="var(--teal)" showSpinner={false} height={3} />
         <AuthProvider>
           <CartProvider>
-            <Navbar />
             {children}
-            <Footer />
-            <CartSidebar />
             <ToastContainer />
-            <OnboardingModal />
           </CartProvider>
         </AuthProvider>
       </body>
