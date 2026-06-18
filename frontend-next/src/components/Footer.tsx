@@ -72,7 +72,7 @@ export default function Footer() {
               {[
                 { label: 'Privacy Policy', href: '/privacy-policy' },
                 { label: 'Terms & Conditions', href: '/terms' },
-                { label: 'Owner Dashboard', href: 'http://localhost:3001' },
+                { label: 'Owner Dashboard', href: process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3001' },
               ].map(l => (
                 <Link key={l.label} href={l.href} className="footer-link">{l.label}</Link>
               ))}
