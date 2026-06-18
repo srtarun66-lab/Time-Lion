@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ImageCropModal from '@/components/admin/ImageCropModal';
 import { db } from '@/lib/firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs } from 'firebase/firestore';
 
 const LabeledField = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -23,7 +23,38 @@ export default function AddProductPage() {
   const [badgeType, setBadgeType] = useState('');
   const [imgStatus, setImgStatus] = useState<React.ReactNode>('');
   const [imageUrl, setImageUrl] = useState('');
-  const [cropFile, setCropFile] = useState<File | null>(null); // triggers crop modal
+  const [cropFile, setCropFile] = useState<File | null>(null);
+
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [category, setCategory] = useState('');
+  const [comboP1, setComboP1] = useState('');
+  const [comboP2, setComboP2] = useState('');
+  const [suggestedPrice, setSuggestedPrice] = useState<number | ''>('');
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, 'products'));
+        const productsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setAllProducts(productsList);
+      } catch (err) {
+        console.error("Error fetching products", err);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    if (category === 'special-combo' && comboP1 && comboP2) {
+      const p1 = allProducts.find(p => p.id === comboP1);
+      const p2 = allProducts.find(p => p.id === comboP2);
+      if (p1 && p2) {
+        setSuggestedPrice((p1.price || 0) + (p2.price || 0));
+      }
+    } else {
+      setSuggestedPrice('');
+    }
+  }, [comboP1, comboP2, category, allProducts]);
 
   const handleImagePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -33,7 +64,7 @@ export default function AddProductPage() {
       e.target.value = '';
       return;
     }
-    setCropFile(file); // open crop modal
+    setCropFile(file);
     e.target.value = '';
   };
 
@@ -41,30 +72,59 @@ export default function AddProductPage() {
     setCropFile(null);
     setImageUrl(url);
     setImgPreview(url);
-    setImgStatus(<span style={{ color: 'var(--success)' }}>✓ Image cropped &amp; uploaded to cloud</span>);
+    setImgStatus(<span style={{ color: 'var(--success)' }}>✓ Image cropped & uploaded to cloud</span>);
   };
-
-
 
   const submitProduct = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
     const name = (form.elements.namedItem('pName') as HTMLInputElement).value.trim();
-    const category = (form.elements.namedItem('pCategory') as HTMLSelectElement).value;
-    const price = Number((form.elements.namedItem('pPrice') as HTMLInputElement).value);
+    const currentPrice = Number((form.elements.namedItem('pPrice') as HTMLInputElement).value);
 
-    if (!name || !category || !price) {
+    if (!name || !category || !currentPrice) {
       window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Please fill all required fields.', type: 'error' } }));
       return;
     }
-    if (!imageUrl) {
-      window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Please upload and crop a product image first.', type: 'error' } }));
+
+    // Duplicate Name Check
+    const nameExists = allProducts.some(p => p.name.toLowerCase() === name.toLowerCase());
+    if (nameExists) {
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'A product with this name already exists.', type: 'error' } }));
       return;
     }
+
+    let finalImageUrl = imageUrl;
+    
+    if (category === 'special-combo') {
+      if (!comboP1 || !comboP2) {
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Please select 2 products for the combo.', type: 'error' } }));
+        return;
+      }
+      if (comboP1 === comboP2) {
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Please select two different products.', type: 'error' } }));
+        return;
+      }
+      if (!finalImageUrl) {
+        // Fallback to first product image if not uploaded
+        const p1 = allProducts.find(p => p.id === comboP1);
+        if (p1 && p1.image) {
+          finalImageUrl = p1.image;
+        } else {
+          window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Please upload an image for the combo.', type: 'error' } }));
+          return;
+        }
+      }
+    } else {
+      if (!finalImageUrl) {
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Please upload and crop a product image first.', type: 'error' } }));
+        return;
+      }
+    }
+
     setLoading(true);
 
     const payload: any = {
-      name, category, price,
+      name, category, price: currentPrice,
       originalPrice: (form.elements.namedItem('pOriginal') as HTMLInputElement).value
         ? Number((form.elements.namedItem('pOriginal') as HTMLInputElement).value) : undefined,
       stock: (form.elements.namedItem('pStock') as HTMLInputElement).value
@@ -74,15 +134,24 @@ export default function AddProductPage() {
         ? ((form.elements.namedItem('pBadgeCustom') as HTMLInputElement)?.value.trim() || '')
         : badgeType,
       description: (form.elements.namedItem('pDesc') as HTMLInputElement).value.trim(),
-      image: imageUrl,
+      image: finalImageUrl,
       createdAt: new Date().toISOString(),
     };
+
+    if (category === 'special-combo') {
+       payload.comboProductIds = [comboP1, comboP2];
+    }
 
     try {
       await addDoc(collection(db, 'products'), payload);
       window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: `"${name}" added to store!`, type: 'success' } }));
+      
+      // Update local state without refetching immediately
+      setAllProducts([...allProducts, { id: Math.random().toString(), ...payload }]);
+      
       form.reset();
       setImgPreview(''); setImageUrl(''); setImgStatus(''); setBadgeType('');
+      setCategory(''); setComboP1(''); setComboP2(''); setSuggestedPrice('');
     } catch {
       window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Cannot reach server.', type: 'error' } }));
     }
@@ -99,7 +168,6 @@ export default function AddProductPage() {
 
   return (
     <div className="fade-up">
-      {/* Crop Modal */}
       {cropFile && (
         <ImageCropModal
           file={cropFile}
@@ -112,8 +180,7 @@ export default function AddProductPage() {
       <div className="pg-sub">Fill the form below and upload a photo</div>
 
       <form onSubmit={submitProduct} autoComplete="off" style={{ maxWidth: 820 }}>
-
-        {/* Basic Info */}
+        
         <div style={card}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 20 }}>
             Basic Info
@@ -123,7 +190,13 @@ export default function AddProductPage() {
               <input name="pName" placeholder="e.g. Gold Elite Pro" required className="admin-input" />
             </LabeledField>
             <LabeledField label="Category *">
-              <select name="pCategory" required className="admin-input">
+              <select 
+                name="pCategory" 
+                required 
+                className="admin-input"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              >
                 <option value="">— Select category —</option>
                 <option value="classic-metal">Classic Metal</option>
                 <option value="digital-mania">Digital Mania</option>
@@ -132,16 +205,48 @@ export default function AddProductPage() {
               </select>
             </LabeledField>
           </div>
+
+          {category === 'special-combo' && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, marginTop: 18, padding: 16, background: 'rgba(25,211,197,0.05)', borderRadius: 12, border: '1px solid rgba(25,211,197,0.1)' }}>
+              <LabeledField label="Select Product 1 *">
+                <select className="admin-input" value={comboP1} onChange={e => setComboP1(e.target.value)} required>
+                  <option value="">— First Combo Item —</option>
+                  {allProducts.filter(p => p.category !== 'special-combo').map(p => (
+                    <option key={p.id} value={p.id}>{p.name} - ₹{p.price}</option>
+                  ))}
+                </select>
+              </LabeledField>
+              <LabeledField label="Select Product 2 *">
+                <select className="admin-input" value={comboP2} onChange={e => setComboP2(e.target.value)} required>
+                  <option value="">— Second Combo Item —</option>
+                  {allProducts.filter(p => p.category !== 'special-combo' && p.id !== comboP1).map(p => (
+                    <option key={p.id} value={p.id}>{p.name} - ₹{p.price}</option>
+                  ))}
+                </select>
+              </LabeledField>
+              <div style={{ gridColumn: '1 / -1', fontSize: 12, color: 'var(--muted)' }}>
+                {comboP1 && comboP2 && suggestedPrice ? `Calculated Combo Price: ₹${suggestedPrice} (You can edit the Sale Price below to offer a discount!)` : 'Select two products to calculate combined price.'}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Pricing & Details */}
         <div style={card}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 20 }}>
             Pricing & Details
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 16 }}>
             <LabeledField label="Sale Price ₹ *">
-              <input type="number" name="pPrice" placeholder="1999" min="1" required className="admin-input" />
+              <input 
+                type="number" 
+                name="pPrice" 
+                placeholder="1999" 
+                min="1" 
+                required 
+                className="admin-input" 
+                defaultValue={suggestedPrice !== '' ? suggestedPrice : ''}
+                key={suggestedPrice} 
+              />
             </LabeledField>
             <LabeledField label="Original Price ₹">
               <input type="number" name="pOriginal" placeholder="2999" min="0" className="admin-input" />
@@ -176,10 +281,9 @@ export default function AddProductPage() {
           </div>
         </div>
 
-        {/* Image */}
         <div style={card}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 20 }}>
-            Product Image
+            Product Image {category === 'special-combo' && <span style={{ color: 'var(--teal)', fontSize: 10, marginLeft: 8 }}>(Optional for Combos)</span>}
           </div>
 
           <div style={{
@@ -207,6 +311,11 @@ export default function AddProductPage() {
                   <span style={{ color: 'var(--teal)', fontWeight: 600 }}>Click to upload</span> a photo
                 </div>
                 <div style={{ color: 'var(--muted)', fontSize: 11, marginTop: 4 }}>JPG, PNG, WEBP — max 10 MB</div>
+                {category === 'special-combo' && (
+                  <div style={{ color: 'var(--muted)', fontSize: 11, marginTop: 8 }}>
+                    If no image is uploaded, we will automatically use the first product's image.
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -214,8 +323,6 @@ export default function AddProductPage() {
           {imgStatus && (
             <div style={{ fontSize: 12, marginTop: 10 }}>{imgStatus}</div>
           )}
-
-
         </div>
 
         <button type="submit" className="btn-primary" disabled={loading}>
