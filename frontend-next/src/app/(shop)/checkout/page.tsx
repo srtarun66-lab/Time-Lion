@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, doc, updateDoc } from 'firebase/firestore';
 
 declare global {
   interface Window {
@@ -46,6 +48,22 @@ export default function CheckoutPage() {
       });
     }
   }, [user]);
+
+  // Auto fetch city based on Pincode
+  useEffect(() => {
+    if (formData.pincode.length === 6) {
+      fetch(`https://api.postalpincode.in/pincode/${formData.pincode}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data[0] && data[0].Status === 'Success') {
+            const postOffice = data[0].PostOffice[0];
+            const newCity = `${postOffice.District}, ${postOffice.State}`;
+            setFormData(prev => ({ ...prev, city: newCity }));
+          }
+        })
+        .catch(err => console.error("Error fetching pincode details", err));
+    }
+  }, [formData.pincode]);
 
   useEffect(() => {
     const loadRazorpay = () => {
@@ -110,25 +128,34 @@ export default function CheckoutPage() {
       // DUMMY PAYMENT BYPASS FOR TESTING
       setTimeout(async () => {
         try {
-          const vRes = await fetch('/api/orders/razorpay/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              razorpay_order_id: 'dummy_order_' + Date.now(),
-              razorpay_payment_id: 'dummy_payment_' + Date.now(),
-              razorpay_signature: 'dummy_signature',
-              orderDetails
-            })
-          });
-          const vData = await vRes.json();
-          if (vData.success) {
-            window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: `Dummy Payment Verified! Order: ${vData.orderId}`, type: 'success' } }));
-            if (!checkoutProduct) clearCart();
-            router.push('/orders');
-          } else {
-            window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Dummy payment failed.', type: 'error' } }));
+          // Direct Firebase Write Instead of API Verify Route
+          const orderPayload = {
+            ...orderDetails,
+            userId: user?.id || null,
+            status: 'Confirmed',
+            paymentStatus: 'Paid',
+            createdAt: new Date().toISOString(),
+            orderId: 'ORD-' + Math.floor(100000 + Math.random() * 900000)
+          };
+
+          const docRef = await addDoc(collection(db, 'orders'), orderPayload);
+
+          // Update user details if logged in and address mode is NEW
+          if (user && user.id && addressMode === 'NEW') {
+            const userRef = doc(db, 'users', user.id);
+            await updateDoc(userRef, {
+              phone: finalAddress.phone || user.phone || '',
+              address: finalAddress.address || user.address || '',
+              city: finalAddress.city || user.city || '',
+              pincode: finalAddress.pincode || user.pincode || ''
+            }).catch(e => console.error("Failed to update user profile", e));
           }
+
+          window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: `Dummy Payment Verified! Order: ${orderPayload.orderId}`, type: 'success' } }));
+          if (!checkoutProduct) clearCart();
+          router.push('/orders');
         } catch (err) {
+           console.error(err);
            window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Server error during dummy verification.', type: 'error' } }));
         } finally {
           setLoading(false);
@@ -212,7 +239,7 @@ export default function CheckoutPage() {
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 8 }}>Phone *</label>
-                      <input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="10-digit number" required style={{ width: '100%', padding: 16, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: 'var(--text)' }} />
+                      <input type="tel" maxLength={10} value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value.replace(/\\D/g, '').slice(0, 10)})} placeholder="10-digit number" required style={{ width: '100%', padding: 16, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: 'var(--text)' }} />
                     </div>
                   </div>
                   <div style={{ marginBottom: 20 }}>
@@ -230,7 +257,7 @@ export default function CheckoutPage() {
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sub)', marginBottom: 8 }}>Pincode</label>
-                      <input type="text" value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value})} placeholder="6-digit pincode" style={{ width: '100%', padding: 16, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: 'var(--text)' }} />
+                      <input type="text" maxLength={6} value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value.replace(/\\D/g, '').slice(0, 6)})} placeholder="6-digit pincode" style={{ width: '100%', padding: 16, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: 'var(--text)' }} />
                     </div>
                   </div>
                   
