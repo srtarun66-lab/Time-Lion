@@ -42,6 +42,7 @@ export default async function CategoryPage({ params }: { params: { slug: string 
       </div>
 
       {/* Products Grid */}
+      {/* Products Grid */}
       <section style={{ padding: '0 48px 80px', maxWidth: 1400, margin: '0 auto' }}>
         <div className="product-grid-3">
           {products.map((p) => (
