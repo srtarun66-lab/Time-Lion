@@ -1,0 +1,31 @@
+{
+  "name": "niraz-watch-store",
+  "version": "2.1.0",
+  "description": "Right Time Right Now – Niraz Watch Store",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "ts-node --project backend/tsconfig.json backend/src/server.ts",
+    "dev": "nodemon --exec ts-node --project backend/tsconfig.json backend/src/server.ts",
+    "build": "tsc -p backend/tsconfig.json"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "firebase": "^12.15.0",
+    "mongoose": "^8.5.1",
+    "multer": "^1.4.5-lts.1",
+    "razorpay": "^2.9.6",
+    "twilio": "^6.0.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/mongoose": "^5.11.96",
+    "@types/multer": "^2.1.0",
+    "@types/node": "^25.9.3",
+    "dotenv": "^17.4.2",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}
