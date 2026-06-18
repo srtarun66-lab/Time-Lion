@@ -63,7 +63,7 @@ export default function AddProductPage() {
     }
     setLoading(true);
 
-    const payload = {
+    const payload: any = {
       name, category, price,
       originalPrice: (form.elements.namedItem('pOriginal') as HTMLInputElement).value
         ? Number((form.elements.namedItem('pOriginal') as HTMLInputElement).value) : undefined,
@@ -75,10 +75,10 @@ export default function AddProductPage() {
         : badgeType,
       description: (form.elements.namedItem('pDesc') as HTMLInputElement).value.trim(),
       image: imageUrl,
+      createdAt: new Date().toISOString(),
     };
 
     try {
-      payload.createdAt = new Date().toISOString();
       await addDoc(collection(db, 'products'), payload);
       window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: `"${name}" added to store!`, type: 'success' } }));
       form.reset();
