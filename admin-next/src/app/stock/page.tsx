@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 
 export default function StockPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -12,9 +14,9 @@ export default function StockPage() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://127.0.0.1:5000/api/products');
-      const data = await res.json();
-      const list = data.products || [];
+      const snap = await getDocs(collection(db, 'products'));
+      const list: any[] = [];
+      snap.forEach(d => list.push({ _id: d.id, ...d.data() }));
       setProducts(list);
       // init edits with current stock values
       const init: Record<string, number> = {};
@@ -31,18 +33,9 @@ export default function StockPage() {
   const updateStock = async (id: string) => {
     setSaving(id);
     try {
-      const res = await fetch(`http://127.0.0.1:5000/api/products/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stock: edits[id] }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Stock updated!', type: 'success' } }));
-        setProducts(products.map(p => p._id === id ? { ...p, stock: edits[id] } : p));
-      } else {
-        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: data.message || 'Update failed.', type: 'error' } }));
-      }
+      await updateDoc(doc(db, 'products', id), { stock: edits[id] });
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Stock updated!', type: 'success' } }));
+      setProducts(products.map(p => p._id === id ? { ...p, stock: edits[id] } : p));
     } catch {
       window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Server error.', type: 'error' } }));
     }
@@ -59,13 +52,8 @@ export default function StockPage() {
     await Promise.all(
       dirtyIds.map(async (id) => {
         try {
-          const res = await fetch(`http://127.0.0.1:5000/api/products/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ stock: edits[id] }),
-          });
-          const data = await res.json();
-          if (data.success) successCount++;
+          await updateDoc(doc(db, 'products', id), { stock: edits[id] });
+          successCount++;
         } catch { /* skip */ }
       })
     );
@@ -209,7 +197,7 @@ export default function StockPage() {
                 products.map((p) => {
                   const currentStock = edits[p._id] ?? p.stock;
                   const { label, cls } = getStockLabel(currentStock);
-                  const imgSrc = p.image?.startsWith('http') ? p.image : `http://127.0.0.1:5000${p.image}`;
+                  const imgSrc = p.image || '';
                   const isDirty = edits[p._id] !== p.stock;
 
                   return (

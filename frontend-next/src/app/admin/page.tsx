@@ -1,15 +1,43 @@
 import React from 'react';
 
+import { db } from '@/lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
+
 async function fetchDashboardData() {
   try {
-    const [dashRes, statsRes] = await Promise.all([
-      fetch('http://127.0.0.1:5000/api/admin/dashboard', { cache: 'no-store' }),
-      fetch('http://127.0.0.1:5000/api/orders/stats', { cache: 'no-store' })
-    ]);
-    const dash = dashRes.ok ? await dashRes.json() : {};
-    const stats = statsRes.ok ? await statsRes.json() : {};
+    const ordersSnap = await getDocs(collection(db, 'orders'));
+    const productsSnap = await getDocs(collection(db, 'products'));
+    
+    let totalOrders = 0;
+    let revenue = 0;
+    let processingCount = 0;
+    const ordersList: any[] = [];
+    
+    ordersSnap.forEach(doc => {
+      totalOrders++;
+      const data = doc.data();
+      revenue += (data.totalAmount || 0);
+      if (data.status === 'Processing') processingCount++;
+      ordersList.push({ _id: doc.id, ...data });
+    });
+    
+    ordersList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const recentOrders = ordersList.slice(0, 5);
+    
+    const dash = {
+      totalOrders,
+      revenue,
+      totalProducts: productsSnap.size,
+      recentOrders
+    };
+    
+    const stats = {
+      byStatus: [{ _id: 'Processing', count: processingCount }]
+    };
+    
     return { dash, stats };
-  } catch {
+  } catch (err) {
+    console.error(err);
     return { dash: null, stats: null };
   }
 }

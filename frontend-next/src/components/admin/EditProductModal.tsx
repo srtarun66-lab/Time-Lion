@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ImageCropModal from '@/components/admin/ImageCropModal';
+import { db } from '@/lib/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 
 const LabeledField = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -15,7 +17,7 @@ const LabeledField = ({ label, children }: { label: string; children: React.Reac
 
 export default function EditProductModal({ product, onClose, onSave }: { product: any, onClose: () => void, onSave: () => void }) {
   const [loading, setLoading] = useState(false);
-  const [imgPreview, setImgPreview] = useState(product.image?.startsWith('http') ? product.image : 'http://127.0.0.1:5000' + product.image);
+  const [imgPreview, setImgPreview] = useState(product.image || '');
   const [badgeType, setBadgeType] = useState(['BESTSELLER', 'NEW', 'LIMITED', ''].includes(product.badge || '') ? (product.badge || '') : 'Others');
   const [imgStatus, setImgStatus] = useState<React.ReactNode>('');
   const [imageUrl, setImageUrl] = useState(product.image);
@@ -68,18 +70,9 @@ export default function EditProductModal({ product, onClose, onSave }: { product
     };
 
     try {
-      const res = await fetch('http://127.0.0.1:5000/api/products/' + product._id, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (data.success) {
-        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: "Product updated successfully!", type: 'success' } }));
-        onSave();
-      } else {
-        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: data.message || 'Error updating product.', type: 'error' } }));
-      }
+      await updateDoc(doc(db, 'products', product._id), payload);
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: "Product updated successfully!", type: 'success' } }));
+      onSave();
     } catch {
       window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Cannot reach server.', type: 'error' } }));
     }

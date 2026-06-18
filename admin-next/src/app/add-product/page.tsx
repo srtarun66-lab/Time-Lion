@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import ImageCropModal from '@/components/ImageCropModal';
+import { db } from '@/lib/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 const LabeledField = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -76,19 +78,11 @@ export default function AddProductPage() {
     };
 
     try {
-      const res = await fetch('http://127.0.0.1:5000/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (data.success) {
-        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: `"${name}" added to store!`, type: 'success' } }));
-        form.reset();
-        setImgPreview(''); setImageUrl(''); setImgStatus(''); setBadgeType('');
-      } else {
-        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: data.message || 'Error adding product.', type: 'error' } }));
-      }
+      payload.createdAt = new Date().toISOString();
+      await addDoc(collection(db, 'products'), payload);
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: `"${name}" added to store!`, type: 'success' } }));
+      form.reset();
+      setImgPreview(''); setImageUrl(''); setImgStatus(''); setBadgeType('');
     } catch {
       window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Cannot reach server.', type: 'error' } }));
     }

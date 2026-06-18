@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
 
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<any[]>([]);
@@ -10,9 +12,23 @@ export default function ReviewsPage() {
   const fetchReviews = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://127.0.0.1:5000/api/admin/reviews');
-      const data = await res.json();
-      setReviews(data.reviews || []);
+      const snap = await getDocs(collection(db, 'products'));
+      const allReviews: any[] = [];
+      snap.forEach(docSnap => {
+        const product = docSnap.data();
+        if (product.reviews && Array.isArray(product.reviews)) {
+          product.reviews.forEach((r: any) => {
+            allReviews.push({
+              ...r,
+              productId: docSnap.id,
+              productName: product.name,
+              productImage: product.image
+            });
+          });
+        }
+      });
+      allReviews.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+      setReviews(allReviews);
     } catch {
       window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Failed to load reviews.', type: 'error' } }));
     }
@@ -23,13 +39,16 @@ export default function ReviewsPage() {
 
   const removeReview = async (productId: string, reviewId: string) => {
     try {
-      const res = await fetch(`http://127.0.0.1:5000/api/admin/reviews/${productId}/${reviewId}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) {
+      const productRef = doc(db, 'products', productId);
+      const pSnap = await getDoc(productRef);
+      if (pSnap.exists()) {
+        const product = pSnap.data();
+        const updatedReviews = (product.reviews || []).filter((r: any) => r._id !== reviewId);
+        await updateDoc(productRef, { reviews: updatedReviews });
         window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Review removed.', type: 'success' } }));
         fetchReviews();
       } else {
-        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: data.message || 'Failed to remove', type: 'error' } }));
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Product not found.', type: 'error' } }));
       }
     } catch {
       window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Server error.', type: 'error' } }));
@@ -84,7 +103,7 @@ export default function ReviewsPage() {
                 </tr>
               ) : (
                 reviews.map((r) => {
-                  const imgSrc = r.productImage?.startsWith('http') ? r.productImage : `http://127.0.0.1:5000${r.productImage}`;
+                  const imgSrc = r.productImage || '';
                   return (
                     <tr key={r._id}>
                       <td>

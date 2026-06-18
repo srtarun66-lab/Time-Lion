@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import EditProductModal from '@/components/EditProductModal';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -12,9 +14,10 @@ export default function ProductsPage() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://127.0.0.1:5000/api/products');
-      const data = await res.json();
-      setProducts(data.products || []);
+      const snap = await getDocs(collection(db, 'products'));
+      const list: any[] = [];
+      snap.forEach(d => list.push({ _id: d.id, ...d.data() }));
+      setProducts(list);
     } catch {
       window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Failed to load products.', type: 'error' } }));
     }
@@ -25,14 +28,9 @@ export default function ProductsPage() {
 
   const removeProduct = async (id: string) => {
     try {
-      const res = await fetch(`http://127.0.0.1:5000/api/products/${id}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) {
-        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Product removed.', type: 'success' } }));
-        fetchProducts();
-      } else {
-        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: data.message || 'Failed to remove', type: 'error' } }));
-      }
+      await deleteDoc(doc(db, 'products', id));
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Product removed.', type: 'success' } }));
+      fetchProducts();
     } catch {
       window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Server error.', type: 'error' } }));
     }
@@ -90,7 +88,7 @@ export default function ProductsPage() {
                 </tr>
               ) : (
                 products.map((p) => {
-                  const imgSrc = p.image?.startsWith('http') ? p.image : `http://127.0.0.1:5000${p.image}`;
+                  const imgSrc = p.image || '';
                   return (
                     <tr key={p._id}>
                       <td>

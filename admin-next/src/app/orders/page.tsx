@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 
 const STATUSES = ['', 'Processing', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'];
 
@@ -15,12 +17,15 @@ export default function OrdersPage() {
     if (showSpinner) setLoading(true);
     else setIsSilentLoading(true);
     try {
-      const url = status
-        ? `http://127.0.0.1:5000/api/orders?status=${status}`
-        : `http://127.0.0.1:5000/api/orders`;
-      const res = await fetch(url);
-      const data = await res.json();
-      setOrders(data.orders || []);
+      const snap = await getDocs(collection(db, 'orders'));
+      const list: any[] = [];
+      snap.forEach(d => {
+        const data = d.data();
+        if (status && data.status !== status) return;
+        list.push({ _id: d.id, ...data });
+      });
+      list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setOrders(list);
     } catch {
       window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Failed to fetch orders.', type: 'error' } }));
     }
@@ -38,18 +43,9 @@ export default function OrdersPage() {
 
   const updateStatus = async (id: string, newStatus: string) => {
     try {
-      const res = await fetch(`http://127.0.0.1:5000/api/orders/${id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: `Status → ${newStatus}`, type: 'success' } }));
-        setOrders(orders.map(o => o._id === id ? { ...o, status: newStatus } : o));
-      } else {
-        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: data.message || 'Update failed', type: 'error' } }));
-      }
+      await updateDoc(doc(db, 'orders', id), { status: newStatus });
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: `Status → ${newStatus}`, type: 'success' } }));
+      setOrders(orders.map(o => o._id === id ? { ...o, status: newStatus } : o));
     } catch {
       window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Failed to update status.', type: 'error' } }));
     }
