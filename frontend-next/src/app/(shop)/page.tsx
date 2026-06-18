@@ -71,6 +71,7 @@ const testimonials = [
     rating: 5,
     text: 'Absolutely stunning watch. The quality exceeded my expectations — the finish is premium and it keeps perfect time. Perfect for formal occasions!',
     tag: '✓ Verified Buyer',
+    photoURL: null,
   },
   {
     name: 'Priya M.',
@@ -78,6 +79,7 @@ const testimonials = [
     rating: 5,
     text: 'Ordered the combo set — great value for the price. Fast delivery in 2 days and the packaging was beautiful. Will definitely order again!',
     tag: '✓ Verified Buyer',
+    photoURL: null,
   },
   {
     name: 'Ravi S.',
@@ -85,6 +87,7 @@ const testimonials = [
     rating: 5,
     text: 'The Digital Mania collection is absolutely fire. Bold, stylish, and super accurate. My friends keep asking where I got it from. 10/10 recommend!',
     tag: '✓ Verified Buyer',
+    photoURL: null,
   },
 ];
 
