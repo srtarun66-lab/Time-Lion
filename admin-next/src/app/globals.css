@@ -1,22 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;900&display=swap');
 
 :root {
-  --teal:       #19D3C5;
-  --teal-mid:   #13a89c;
-  --teal-dim:   rgba(25,211,197,0.15);
-  --gold:       #F5C542;
-  --gold-dim:   rgba(245,197,66,0.12);
+  --teal:       #C9A84C;
+  --teal-mid:   #b08a35;
+  --teal-dim:   rgba(201, 168, 76, 0.12);
+  --gold:       #C9A84C;
+  --gold-dim:   rgba(201, 168, 76, 0.12);
 
-  --bg:         #060a12;
-  --bg2:        #0a0f1c;
-  --bg3:        #0f1628;
-  --bg4:        #141c33;
+  --bg:         #060604;
+  --bg2:        #0c0b08;
+  --bg3:        #121008;
+  --bg4:        #1a1710;
 
-  --text:       #f0f4ff;
-  --text-sub:   #94a3c0;
-  --muted:      #4b5a7a;
+  --text:       #f5f0e8;
+  --text-sub:   #a89878;
+  --muted:      #5a4f3a;
 
-  --border:     rgba(255,255,255,0.06);
+  --border:     rgba(201, 168, 76, 0.08);
 
   --danger:     #ff4466;
   --danger-dim: rgba(255,68,102,0.12);
@@ -153,7 +153,7 @@ tr:hover td { background: rgba(255,255,255,0.01); }
   text-transform: uppercase;
 }
 .b-processing { background: rgba(245,197,66,0.12); color: var(--gold); border: 1px solid rgba(245,197,66,0.2); }
-.b-confirmed  { background: var(--teal-dim); color: var(--teal); border: 1px solid rgba(25,211,197,0.2); }
+.b-confirmed  { background: var(--teal-dim); color: var(--teal); border: 1px solid rgba(201, 168, 76, 0.2); }
 .b-shipped    { background: rgba(130,100,255,0.1); color: #a080ff; border: 1px solid rgba(130,100,255,0.2); }
 .b-delivered  { background: rgba(0,204,136,0.12); color: var(--success); border: 1px solid rgba(0,204,136,0.2); }
 .b-cancelled  { background: rgba(255,68,102,0.1); color: var(--danger); border: 1px solid rgba(255,68,102,0.2); }
@@ -178,7 +178,7 @@ tr:hover td { background: rgba(255,255,255,0.01); }
 .btn-primary:hover {
   background: var(--teal-mid);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(25,211,197,0.25);
+  box-shadow: 0 8px 24px rgba(201, 168, 76, 0.25);
 }
 .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 
@@ -196,8 +196,8 @@ tr:hover td { background: rgba(255,255,255,0.01); }
   transition: border-color 0.2s;
 }
 .admin-input:focus {
-  border-color: rgba(25,211,197,0.35);
-  background: rgba(25,211,197,0.04);
+  border-color: rgba(201, 168, 76, 0.35);
+  background: rgba(201, 168, 76, 0.04);
 }
 .admin-input::placeholder { color: var(--muted); }
 select.admin-input option {

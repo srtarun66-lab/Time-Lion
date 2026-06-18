@@ -650,6 +650,11 @@ input:focus, select:focus, textarea:focus {
   border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
 }
 
+option {
+  background: var(--bg2);
+  color: var(--text);
+}
+
 /* ─── Admin ─── */
 .pg-title { font-family: var(--font-body); font-size: 11px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
 .pg-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 28px; }
@@ -844,6 +849,19 @@ input:focus, select:focus, textarea:focus {
   .product-img { height: 160px !important; }
 }
 
+@media (min-width: 1400px) {
+  .product-grid-3 { grid-template-columns: repeat(4, 1fr); }
+}
+
+.combo-grid {
+  display: grid;
+  gap: 32px;
+  justify-content: center;
+  grid-template-columns: repeat(1, 1fr);
+}
+@media (min-width: 900px) {
+  .combo-grid { grid-template-columns: repeat(2, 1fr); }
+}
 
 /* ═══════════════════════════════════════════════════════════
    TRUST BADGES STRIP

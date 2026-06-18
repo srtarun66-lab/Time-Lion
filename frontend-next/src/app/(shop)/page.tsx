@@ -47,6 +47,23 @@ async function getSiteStats(): Promise<{ totalOrders: number }> {
   }
 }
 
+async function getUsersPhotoMap(): Promise<Record<string, string>> {
+  try {
+    const usersSnap = await getDocs(collection(db, 'users'));
+    const map: Record<string, string> = {};
+    usersSnap.forEach(doc => {
+      const data = doc.data();
+      if (data.email && data.photoURL) {
+        map[data.email] = data.photoURL;
+      }
+    });
+    return map;
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    return {};
+  }
+}
+
 const testimonials = [
   {
     name: 'Arjun K.',
@@ -72,7 +89,7 @@ const testimonials = [
 ];
 
 export default async function Home() {
-  const [allProducts, siteStats] = await Promise.all([getAllProducts(), getSiteStats()]);
+  const [allProducts, siteStats, photoMap] = await Promise.all([getAllProducts(), getSiteStats(), getUsersPhotoMap()]);
   const featuredProducts = allProducts.slice(0, 3);
   const newestProduct = allProducts.length > 0 ? allProducts[allProducts.length - 1] : null;
 
@@ -87,6 +104,17 @@ export default async function Home() {
   const customerDisplay = totalOrders >= 1000
     ? `${(totalOrders / 1000).toFixed(1).replace(/\.0$/, '')}K+`
     : totalOrders > 0 ? `${totalOrders}+` : '500+';
+
+  const allReviews = allProducts.flatMap((p: any) => p.reviews || []);
+  const sortedReviews = allReviews.sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+  const displayReviews = sortedReviews.length > 0 ? sortedReviews.slice(0, 3).map((r: any) => ({
+    name: r.userName || 'User',
+    location: 'India',
+    rating: r.rating || 5,
+    text: r.comment || '',
+    photoURL: r.photoURL || (r.email ? photoMap[r.email] : null) || null,
+    tag: r.isVerifiedPurchase ? '✓ Verified Buyer' : 'Customer',
+  })) : testimonials;
 
   const categories = [
     {
@@ -194,11 +222,6 @@ export default async function Home() {
           {/* LEFT: Text Content */}
           <div className="hero-left slide-left" style={{ animationDelay: '0.1s' }}>
 
-            {/* Badge */}
-            <div className="label-tag" style={{ marginBottom: 24 }}>
-              <span className="label-dot" aria-hidden="true" />
-              Premium Watch Store — India&apos;s Finest
-            </div>
 
             {/* Headline */}
             <h1 style={{
@@ -237,32 +260,6 @@ export default async function Home() {
               </Link>
             </div>
 
-            {/* Trust Badges */}
-            <div className="trust-strip fade-up" style={{ animationDelay: '0.65s', justifyContent: 'flex-start' }}>
-              {[
-                {
-                  icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
-                  label: '1-Year Warranty',
-                },
-                {
-                  icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>,
-                  label: 'Free Shipping ₹999+',
-                },
-                {
-                  icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>,
-                  label: 'Secure Payment',
-                },
-                {
-                  icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>,
-                  label: 'Easy Returns',
-                },
-              ].map(badge => (
-                <div key={badge.label} className="trust-badge">
-                  {badge.icon}
-                  {badge.label}
-                </div>
-              ))}
-            </div>
 
             {/* Stats Row */}
             <div className="fade-up hero-stats" style={{
@@ -324,7 +321,9 @@ export default async function Home() {
         <section className="section" aria-labelledby="shop-by-style-heading">
           <div className="section-title-row">
             <div>
-              <h2 id="shop-by-style-heading" style={{ fontSize: 'clamp(28px, 3.5vw, 46px)', letterSpacing: '-0.02em', fontFamily: 'var(--font-head)' }}>Shop By Style</h2>
+              <h2 id="shop-by-style-heading" style={{ fontSize: 'clamp(28px, 3.5vw, 46px)', letterSpacing: '-0.02em', fontFamily: 'var(--font-head)' }}>
+                Shop By <span className="text-teal">Style</span>
+              </h2>
             </div>
             <span className="section-title-sub">Find your perfect timepiece</span>
           </div>
@@ -350,28 +349,6 @@ export default async function Home() {
       </ScrollReveal>
 
 
-      {/* ═══════════════════════════════════════════════════════════
-          STATS SECTION
-      ═══════════════════════════════════════════════════════════ */}
-      <ScrollReveal>
-        <section className="section" style={{ paddingTop: 0 }} aria-labelledby="stats-heading">
-          <h2 id="stats-heading" className="sr-only">Our Numbers</h2>
-          <div className="stats-section">
-            {[
-              { num: customerDisplay, label: 'Happy Customers', icon: '😊' },
-              { num: `${totalModels}+`, label: 'Watch Models', icon: '⌚' },
-              { num: `${avgRating}★`, label: 'Average Rating', icon: '⭐' },
-              { num: '2 Days', label: 'Avg Delivery Time', icon: '🚀' },
-            ].map(s => (
-              <div key={s.label} className="stat-block">
-                <div style={{ fontSize: 28, marginBottom: 8 }} aria-hidden="true">{s.icon}</div>
-                <div className="stat-number">{s.num}</div>
-                <div className="stat-label">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </section>
-      </ScrollReveal>
 
 
       {/* ═══════════════════════════════════════════════════════════
@@ -389,7 +366,7 @@ export default async function Home() {
           {featuredProducts.length > 0 ? (
             <div className="product-grid-3">
               {featuredProducts.map((product) => (
-                <ProductCard key={product._id} product={product as any} />
+                <ProductCard key={product._id} product={product} isCombo={product.category === 'special-combo'} />
               ))}
             </div>
           ) : (
@@ -459,7 +436,7 @@ export default async function Home() {
       <ScrollReveal>
         <section className="section" style={{ paddingTop: 0 }} aria-labelledby="testimonials-heading">
           <div className="section-header" style={{ marginBottom: 56 }}>
-            <div className="label-tag">Customer Stories</div>
+
             <h2 id="testimonials-heading" style={{ fontSize: 'clamp(28px, 3.5vw, 46px)', letterSpacing: '-0.02em', fontFamily: 'var(--font-head)', marginTop: 0 }}>
               What Our <span className="text-teal">Customers Say</span>
             </h2>
@@ -467,7 +444,7 @@ export default async function Home() {
           </div>
 
           <div className="testimonial-grid">
-            {testimonials.map((t, i) => (
+            {displayReviews.map((t, i) => (
               <article key={i} className="testimonial-card-v2" style={{ animationDelay: `${i * 0.1}s` }}>
                 <div className="testimonial-stars" aria-label={`${t.rating} out of 5 stars`}>
                   {Array.from({ length: 5 }, (_, j) => (
@@ -476,7 +453,11 @@ export default async function Home() {
                 </div>
                 <p className="testimonial-text">&ldquo;{t.text}&rdquo;</p>
                 <div className="testimonial-author">
-                  <div className="testimonial-avatar" aria-hidden="true">{t.name.charAt(0)}</div>
+                  {t.photoURL ? (
+                    <img src={t.photoURL} alt={t.name} referrerPolicy="no-referrer" style={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover', background: 'var(--bg2)' }} className="testimonial-avatar-img" />
+                  ) : (
+                    <div className="testimonial-avatar" aria-hidden="true">{t.name.charAt(0)}</div>
+                  )}
                   <div>
                     <div className="testimonial-name">{t.name}</div>
                     <div className="testimonial-location">{t.location}</div>
@@ -560,7 +541,7 @@ export default async function Home() {
         <section className="section" style={{ paddingTop: 0 }} aria-label="Call to action">
           <div className="cta-banner">
             <div style={{ position: 'relative', zIndex: 1 }}>
-              <div className="label-tag" style={{ marginBottom: 24 }}>🎁 Exclusive Offer</div>
+              <div className="label-tag" style={{ marginBottom: 24 }}>Exclusive Offer</div>
               <h2 style={{ fontSize: 'clamp(28px, 4vw, 52px)', fontFamily: 'var(--font-head)', letterSpacing: '-0.02em', marginBottom: 16 }}>
                 Can&apos;t Find What You Need?
               </h2>
@@ -585,6 +566,29 @@ export default async function Home() {
                 </Link>
               </div>
             </div>
+          </div>
+        </section>
+      </ScrollReveal>
+
+      {/* ═══════════════════════════════════════════════════════════
+          STATS SECTION
+      ═══════════════════════════════════════════════════════════ */}
+      <ScrollReveal>
+        <section className="section" style={{ paddingTop: 0 }} aria-labelledby="stats-heading">
+          <h2 id="stats-heading" className="sr-only">Our Numbers</h2>
+          <div className="stats-section">
+            {[
+              { num: customerDisplay, label: 'Happy Customers', icon: '' },
+              { num: `${totalModels}+`, label: 'Watch Models', icon: '' },
+              { num: `${avgRating}★`, label: 'Average Rating', icon: '' },
+              { num: '2 Days', label: 'Avg Delivery Time', icon: '' },
+            ].map(s => (
+              <div key={s.label} className="stat-block">
+                <div style={{ fontSize: 28, marginBottom: 8 }} aria-hidden="true">{s.icon}</div>
+                <div className="stat-number">{s.num}</div>
+                <div className="stat-label">{s.label}</div>
+              </div>
+            ))}
           </div>
         </section>
       </ScrollReveal>

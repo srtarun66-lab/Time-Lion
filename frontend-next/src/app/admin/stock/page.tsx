@@ -115,7 +115,7 @@ export default function StockPage() {
             {lowStock}
           </div>
         </div>
-        <div style={{ background: 'var(--bg2)', border: '1px solid rgba(25,211,197,0.2)', borderRadius: 16, padding: '22px 24px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ background: 'var(--bg2)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 16, padding: '22px 24px', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, var(--teal), transparent)' }} />
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 10 }}>
             Inventory Value
@@ -180,7 +180,7 @@ export default function StockPage() {
                   <td colSpan={6} style={{ textAlign: 'center', padding: '40px 0' }}>
                     <div style={{
                       width: 32, height: 32, borderRadius: '50%', margin: '0 auto 12px',
-                      border: '2px solid rgba(25,211,197,0.15)',
+                      border: '2px solid rgba(201,168,76,0.15)',
                       borderTopColor: 'var(--teal)',
                       animation: 'spin 0.8s linear infinite',
                     }} />
@@ -246,8 +246,8 @@ export default function StockPage() {
                             onChange={(e) => setEdits(prev => ({ ...prev, [p._id]: Math.max(0, parseInt(e.target.value) || 0) }))}
                             style={{
                               width: 64, textAlign: 'center',
-                              background: isDirty ? 'rgba(25,211,197,0.06)' : 'rgba(255,255,255,0.03)',
-                              border: `1px solid ${isDirty ? 'rgba(25,211,197,0.3)' : 'var(--border)'}`,
+                              background: isDirty ? 'rgba(201,168,76,0.06)' : 'rgba(255,255,255,0.03)',
+                              border: `1px solid ${isDirty ? 'rgba(201,168,76,0.3)' : 'var(--border)'}`,
                               color: isDirty ? 'var(--teal)' : 'var(--text)',
                               padding: '6px 8px', borderRadius: 8,
                               fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600,

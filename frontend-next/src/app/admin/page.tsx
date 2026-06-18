@@ -45,7 +45,7 @@ async function fetchDashboardData() {
 const StatCard = ({ label, value, accent = false, sub }: { label: string; value: string | number; accent?: boolean; sub?: string }) => (
   <div style={{
     background: 'var(--bg2)',
-    border: `1px solid ${accent ? 'rgba(25,211,197,0.2)' : 'var(--border)'}`,
+    border: `1px solid ${accent ? 'rgba(201,168,76,0.2)' : 'var(--border)'}`,
     borderRadius: 16,
     padding: '24px 26px',
     position: 'relative',

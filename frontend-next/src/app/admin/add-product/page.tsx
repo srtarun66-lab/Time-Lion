@@ -207,7 +207,7 @@ export default function AddProductPage() {
           </div>
 
           {category === 'special-combo' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, marginTop: 18, padding: 16, background: 'rgba(25,211,197,0.05)', borderRadius: 12, border: '1px solid rgba(25,211,197,0.1)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, marginTop: 18, padding: 16, background: 'rgba(201,168,76,0.05)', borderRadius: 12, border: '1px solid rgba(201,168,76,0.1)' }}>
               <LabeledField label="Select Product 1 *">
                 <select className="admin-input" value={comboP1} onChange={e => setComboP1(e.target.value)} required>
                   <option value="">— First Combo Item —</option>
@@ -287,10 +287,10 @@ export default function AddProductPage() {
           </div>
 
           <div style={{
-            border: '2px dashed rgba(25,211,197,0.2)',
+            border: '2px dashed rgba(201,168,76,0.2)',
             borderRadius: 12, padding: 32, textAlign: 'center',
             cursor: 'pointer', position: 'relative', transition: '0.2s ease',
-            background: 'rgba(25,211,197,0.02)',
+            background: 'rgba(201,168,76,0.02)',
           }}>
             <input
               type="file" id="imgFile"
@@ -301,7 +301,7 @@ export default function AddProductPage() {
             {imgPreview ? (
               <img src={imgPreview} alt="Preview" style={{
                 width: 100, height: 100, objectFit: 'cover',
-                borderRadius: 10, border: '1px solid rgba(25,211,197,0.3)',
+                borderRadius: 10, border: '1px solid rgba(201,168,76,0.3)',
                 margin: '0 auto',
               }} />
             ) : (

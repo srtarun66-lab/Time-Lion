@@ -62,7 +62,7 @@ export default function ProductsPage() {
                   <td colSpan={8} style={{ textAlign: 'center', padding: '40px 0' }}>
                     <div style={{
                       width: 32, height: 32, borderRadius: '50%', margin: '0 auto 12px',
-                      border: '2px solid rgba(25,211,197,0.15)',
+                      border: '2px solid rgba(201,168,76,0.15)',
                       borderTopColor: 'var(--teal)',
                       animation: 'spin 0.8s linear infinite',
                     }} />
@@ -123,8 +123,8 @@ export default function ProductsPage() {
                         <button
                           onClick={() => setEditingProduct(p)}
                           style={{
-                            background: 'rgba(25,211,197,0.06)',
-                            border: '1px solid rgba(25,211,197,0.2)',
+                            background: 'rgba(201,168,76,0.06)',
+                            border: '1px solid rgba(201,168,76,0.2)',
                             color: 'var(--teal)',
                             padding: '6px 14px',
                             borderRadius: 8,
@@ -136,10 +136,10 @@ export default function ProductsPage() {
                             transition: '0.2s ease',
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(25,211,197,0.14)';
+                            e.currentTarget.style.background = 'rgba(201,168,76,0.14)';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'rgba(25,211,197,0.06)';
+                            e.currentTarget.style.background = 'rgba(201,168,76,0.06)';
                           }}
                         >
                           Edit

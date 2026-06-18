@@ -13,7 +13,7 @@ const categoryMeta: Record<string, { title: string; description: string; h1: str
       'Shop premium Classic Metal watches at Time Lion. Steel, bronze & titanium timepieces for every occasion. 1-Year Warranty, Free Shipping above ₹999.',
     h1: 'Classic Metal',
     subtitle: 'Steel, bronze & titanium — crafted for eternity.',
-    emoji: '🏅',
+    emoji: '',
   },
   'digital-mania': {
     title: 'Digital Watches Online India – Bold & Smart Timepieces | Time Lion',
@@ -21,7 +21,7 @@ const categoryMeta: Record<string, { title: string; description: string; h1: str
       'Shop Digital Mania watches at Time Lion. Smart displays, bold designs, and modern features for the tech-savvy. Free Shipping above ₹999, 1-Year Warranty.',
     h1: 'Digital Mania',
     subtitle: 'Smart features, bold displays, built for the modern age.',
-    emoji: '⚡',
+    emoji: '',
   },
   'special-combo': {
     title: 'Watch Combo Offers – Best Value Bundle Deals | Time Lion',
@@ -29,7 +29,7 @@ const categoryMeta: Record<string, { title: string; description: string; h1: str
       'Explore Special Combo watch offers at Time Lion. Curated watch pairs at unbeatable prices — save up to ₹1700. Free shipping & easy returns.',
     h1: 'Special Combo',
     subtitle: 'Curated pairs at unbeatable value. Save up to ₹1700.',
-    emoji: '🎯',
+    emoji: '',
   },
 };
 
@@ -70,7 +70,7 @@ export default async function CategoryPage({ params }: Props) {
   const products = await getCategoryProducts(slug);
 
   const headerInfo = categoryMeta[slug] || {
-    emoji: '⌚',
+    emoji: '',
     h1: 'All Products',
     subtitle: 'Explore our premium collection.',
     title: '',
@@ -106,9 +106,9 @@ export default async function CategoryPage({ params }: Props) {
         aria-label={`${headerInfo.h1} watches`}
       >
         {products.length > 0 ? (
-          <div className="product-grid-3">
+          <div className={slug === 'special-combo' ? 'combo-grid' : 'product-grid-3'}>
             {products.map((p) => (
-              <ProductCard key={p._id} product={p} />
+              <ProductCard key={p._id} product={p} isCombo={slug === 'special-combo'} />
             ))}
           </div>
         ) : (
@@ -116,7 +116,7 @@ export default async function CategoryPage({ params }: Props) {
             textAlign: 'center', padding: '80px 40px',
             background: 'var(--bg2)', borderRadius: 20, border: '1px solid var(--border)',
           }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }} aria-hidden="true">⌚</div>
+            <div style={{ fontSize: 48, marginBottom: 16 }} aria-hidden="true"></div>
             <h2 style={{ fontFamily: 'var(--font-head)', fontSize: 24, marginBottom: 12 }}>New Stock Coming Soon</h2>
             <p style={{ color: 'var(--text-muted)', marginBottom: 28 }}>
               We&apos;re adding new {headerInfo.h1} watches to this collection. Check back soon!
@@ -143,14 +143,6 @@ export default async function CategoryPage({ params }: Props) {
                 background: 'rgba(255,255,255,0.02)',
                 color: 'var(--text-sub)', fontSize: 14, fontWeight: 600,
                 textDecoration: 'none', transition: 'all 0.25s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(201,168,76,0.3)';
-                e.currentTarget.style.color = 'var(--gold)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
-                e.currentTarget.style.color = 'var(--text-sub)';
               }}
             >
               {info.emoji} {info.h1}

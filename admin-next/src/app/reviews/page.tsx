@@ -79,7 +79,7 @@ export default function ReviewsPage() {
                   <td colSpan={6} style={{ textAlign: 'center', padding: '40px 0' }}>
                     <div style={{
                       width: 32, height: 32, borderRadius: '50%', margin: '0 auto 12px',
-                      border: '2px solid rgba(25,211,197,0.15)',
+                      border: '2px solid rgba(201,168,76,0.15)',
                       borderTopColor: 'var(--teal)',
                       animation: 'spin 0.8s linear infinite',
                     }} />
@@ -102,10 +102,10 @@ export default function ReviewsPage() {
                   </td>
                 </tr>
               ) : (
-                reviews.map((r) => {
+                reviews.map((r, idx) => {
                   const imgSrc = r.productImage || '';
                   return (
-                    <tr key={r._id}>
+                    <tr key={idx}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                           <div style={{

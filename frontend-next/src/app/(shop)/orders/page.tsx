@@ -13,6 +13,7 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(false);
 
   const [isSilentLoading, setIsSilentLoading] = useState(false);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -134,12 +135,6 @@ export default function OrdersPage() {
           <h1 className="fade-up" style={{ fontFamily: 'var(--font-premium)', fontSize: 42, marginBottom: 8, letterSpacing: '0.02em', color: '#f8fafc', textAlign: 'left' }}>My Orders</h1>
           <p className="fade-up" style={{ animationDelay: '0.1s', color: 'var(--text-muted)', fontSize: 16, textAlign: 'left' }}>Track your recent purchases</p>
         </div>
-        {isSilentLoading && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--teal)', fontSize: 12, fontWeight: 600, animation: 'pulse 1.5s infinite' }}>
-            <div style={{ width: 12, height: 12, borderRadius: '50%', border: '2px solid var(--teal)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
-            SYNCING LIVE
-          </div>
-        )}
       </div>
 
       <section style={{ maxWidth: 1000, margin: '0 auto', padding: '0 16px' }}>
@@ -191,44 +186,94 @@ export default function OrdersPage() {
                 {orders.map((order, i) => {
                   const statusStyle = getStatusClass(order.status);
                   const itemNames = order.items.map((it:any) => `${it.quantity}x ${it.name}`).join(', ');
+                  const statuses = ['Processing', 'Confirmed', 'Shipped', 'Delivered'];
+                  const currentStatusIdx = order.status === 'Cancelled' ? -1 : statuses.indexOf(order.status);
+                  
                   return (
-                    <tr key={order._id} style={{ 
-                      borderBottom: i === orders.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.05)',
-                      transition: 'background 0.3s ease', cursor: 'pointer'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <td style={{ padding: '24px 32px', fontFamily: 'var(--font-premium)', fontWeight: 700, fontSize: 16, whiteSpace: 'nowrap' }}>
-                        {order.orderId || order._id.slice(-8).toUpperCase()}
-                      </td>
-                      <td style={{ padding: '24px 32px', fontFamily: 'var(--font-premium)', fontWeight: 600, color: 'var(--text)', fontSize: 16, letterSpacing: '0.05em' }}>
-                        {`${String(new Date(order.createdAt).getDate()).padStart(2, '0')}/${String(new Date(order.createdAt).getMonth() + 1).padStart(2, '0')}/${new Date(order.createdAt).getFullYear()}`}
-                      </td>
-                      <td style={{ padding: '24px 32px', color: 'var(--text-muted)', fontSize: 15, fontFamily: 'var(--font-premium)', letterSpacing: '0.05em', maxWidth: 300, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {order.items.map((it:any, idx:number) => (
-                          <React.Fragment key={idx}>
-                            <Link href={it.productId ? `/product/${it.productId}` : "/"} style={{ color: 'var(--teal)', textDecoration: 'none', transition: 'opacity 0.2s' }} onMouseEnter={e => e.currentTarget.style.opacity='0.8'} onMouseLeave={e => e.currentTarget.style.opacity='1'}>
-                              {it.quantity}x {it.name}
-                            </Link>
-                            {idx < order.items.length - 1 ? ', ' : ''}
-                          </React.Fragment>
-                        ))}
-                      </td>
-                      <td style={{ padding: '24px 32px', fontFamily: 'var(--font-premium)', fontWeight: 700, fontSize: 18, color: 'var(--teal)', letterSpacing: '0.05em' }}>
-                        ₹{order.totalAmount.toLocaleString('en-IN')}
-                      </td>
-                      <td style={{ padding: '24px 32px', textAlign: 'right' }}>
-                        <span style={{
-                          background: statusStyle.bg, color: statusStyle.color,
-                          padding: '6px 14px', borderRadius: 40, fontSize: 13, fontWeight: 700,
-                          fontFamily: 'var(--font-premium)', letterSpacing: '0.05em',
-                          display: 'inline-block'
-                        }}>
-                          {order.status}
-                        </span>
-                      </td>
-                    </tr>
+                    <React.Fragment key={order._id}>
+                      <tr style={{ 
+                        borderBottom: (i === orders.length - 1 && expandedOrderId !== order._id) ? 'none' : '1px solid rgba(255,255,255,0.05)',
+                        transition: 'background 0.3s ease', cursor: 'pointer',
+                        background: expandedOrderId === order._id ? 'rgba(255,255,255,0.02)' : 'transparent'
+                      }}
+                      onClick={() => setExpandedOrderId(expandedOrderId === order._id ? null : order._id)}
+                      onMouseEnter={(e) => { if(expandedOrderId !== order._id) e.currentTarget.style.background = 'rgba(255,255,255,0.02)' }}
+                      onMouseLeave={(e) => { if(expandedOrderId !== order._id) e.currentTarget.style.background = 'transparent' }}
+                      >
+                        <td style={{ padding: '24px 32px', fontFamily: 'var(--font-premium)', fontWeight: 700, fontSize: 16, whiteSpace: 'nowrap' }}>
+                          {order.orderId || order._id.slice(-8).toUpperCase()}
+                        </td>
+                        <td style={{ padding: '24px 32px', fontFamily: 'var(--font-premium)', fontWeight: 600, color: 'var(--text)', fontSize: 16, letterSpacing: '0.05em' }}>
+                          {`${String(new Date(order.createdAt).getDate()).padStart(2, '0')}/${String(new Date(order.createdAt).getMonth() + 1).padStart(2, '0')}/${new Date(order.createdAt).getFullYear()}`}
+                        </td>
+                        <td style={{ padding: '24px 32px', color: 'var(--text-muted)', fontSize: 15, fontFamily: 'var(--font-premium)', letterSpacing: '0.05em', maxWidth: 300, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {order.items.map((it:any, idx:number) => (
+                            <React.Fragment key={idx}>
+                              <Link href={it.productId ? `/product/${it.productId}` : "/"} onClick={(e) => e.stopPropagation()} style={{ color: 'var(--teal)', textDecoration: 'none', transition: 'opacity 0.2s' }} onMouseEnter={e => e.currentTarget.style.opacity='0.8'} onMouseLeave={e => e.currentTarget.style.opacity='1'}>
+                                {it.quantity}x {it.name}
+                              </Link>
+                              {idx < order.items.length - 1 ? ', ' : ''}
+                            </React.Fragment>
+                          ))}
+                        </td>
+                        <td style={{ padding: '24px 32px', fontFamily: 'var(--font-premium)', fontWeight: 700, fontSize: 18, color: 'var(--teal)', letterSpacing: '0.05em' }}>
+                          ₹{order.totalAmount.toLocaleString('en-IN')}
+                        </td>
+                        <td style={{ padding: '24px 32px', textAlign: 'right' }}>
+                          <span style={{
+                            background: statusStyle.bg, color: statusStyle.color,
+                            padding: '6px 14px', borderRadius: 40, fontSize: 13, fontWeight: 700,
+                            fontFamily: 'var(--font-premium)', letterSpacing: '0.05em',
+                            display: 'inline-block'
+                          }}>
+                            {order.status}
+                          </span>
+                        </td>
+                      </tr>
+                      {expandedOrderId === order._id && (
+                        <tr style={{ background: 'rgba(0,0,0,0.2)', borderBottom: i === orders.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.05)' }}>
+                          <td colSpan={5} style={{ padding: '40px 32px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', maxWidth: 600, margin: '0 auto' }}>
+                              {/* Background Line */}
+                              <div style={{ position: 'absolute', top: 16, left: 16, right: 16, height: 2, background: 'rgba(255,255,255,0.1)', zIndex: 0 }} />
+                              {/* Progress Line */}
+                              {currentStatusIdx >= 0 && (
+                                <div style={{ position: 'absolute', top: 16, left: 16, width: `calc(${(currentStatusIdx / (statuses.length - 1)) * 100}% - 32px)`, height: 2, background: 'var(--teal)', zIndex: 1, transition: 'width 0.5s ease' }} />
+                              )}
+                              
+                              {order.status === 'Cancelled' ? (
+                                <div style={{ width: '100%', textAlign: 'center', color: '#f43f5e', fontFamily: 'var(--font-premium)', fontSize: 18, fontWeight: 600 }}>
+                                  Order Cancelled
+                                </div>
+                              ) : (
+                                statuses.map((step, idx) => {
+                                  const isCompleted = idx <= currentStatusIdx;
+                                  const isActive = idx === currentStatusIdx;
+                                  return (
+                                    <div key={step} style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                                      <div style={{
+                                        width: 32, height: 32, borderRadius: '50%',
+                                        background: isCompleted ? 'var(--teal)' : 'var(--bg)',
+                                        border: `2px solid ${isCompleted ? 'var(--teal)' : 'rgba(255,255,255,0.1)'}`,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        color: isCompleted ? '#000' : 'rgba(255,255,255,0.3)',
+                                        boxShadow: isActive ? '0 0 15px rgba(25, 211, 197, 0.4)' : 'none',
+                                        transition: 'all 0.3s ease'
+                                      }}>
+                                        {isCompleted ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> : <span style={{ fontSize: 12, fontWeight: 700 }}>{idx + 1}</span>}
+                                      </div>
+                                      <div style={{ color: isCompleted ? 'var(--text)' : 'var(--text-muted)', fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-premium)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                                        {step}
+                                      </div>
+                                    </div>
+                                  );
+                                })
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   );
                 })}
               </tbody>

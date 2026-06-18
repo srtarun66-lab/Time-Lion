@@ -132,10 +132,10 @@ export default function EditProductModal({ product, onClose, onSave }: { product
 
           <div style={card}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 20 }}>Product Image</div>
-            <div style={{ border: '2px dashed rgba(25,211,197,0.2)', borderRadius: 12, padding: 32, textAlign: 'center', cursor: 'pointer', position: 'relative', background: 'rgba(25,211,197,0.02)' }}>
+            <div style={{ border: '2px dashed rgba(201,168,76,0.2)', borderRadius: 12, padding: 32, textAlign: 'center', cursor: 'pointer', position: 'relative', background: 'rgba(201,168,76,0.02)' }}>
               <input type="file" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" onChange={handleImagePick} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }} />
               {imgPreview ? (
-                <img src={imgPreview} alt="Preview" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 10, border: '1px solid rgba(25,211,197,0.3)', margin: '0 auto' }} />
+                <img src={imgPreview} alt="Preview" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 10, border: '1px solid rgba(201,168,76,0.3)', margin: '0 auto' }} />
               ) : (
                 <div style={{ color: 'var(--muted)', fontSize: 13 }}><span style={{ color: 'var(--teal)', fontWeight: 600 }}>Click to upload</span> a photo</div>
               )}

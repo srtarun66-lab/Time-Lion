@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, getDoc, doc, updateDoc } from 'firebase/firestore';
 
-const STATUSES = ['', 'Processing', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'];
+const STATUSES = ['Processing', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled', ''];
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -90,8 +90,8 @@ export default function OrdersPage() {
             key={s}
             onClick={() => setStatusFilter(s)}
             style={{
-              background: statusFilter === s ? 'rgba(25,211,197,0.1)' : 'rgba(255,255,255,0.03)',
-              border: `1px solid ${statusFilter === s ? 'rgba(25,211,197,0.3)' : 'var(--border)'}`,
+              background: statusFilter === s ? 'rgba(201,168,76,0.1)' : 'rgba(255,255,255,0.03)',
+              border: `1px solid ${statusFilter === s ? 'rgba(201,168,76,0.3)' : 'var(--border)'}`,
               color: statusFilter === s ? 'var(--teal)' : 'var(--muted)',
               padding: '6px 16px',
               borderRadius: 40,
@@ -129,7 +129,7 @@ export default function OrdersPage() {
                   <td colSpan={8} style={{ textAlign: 'center', padding: '40px 0' }}>
                     <div style={{
                       width: 32, height: 32, borderRadius: '50%', margin: '0 auto 12px',
-                      border: '2px solid rgba(25,211,197,0.15)',
+                      border: '2px solid rgba(201,168,76,0.15)',
                       borderTopColor: 'var(--teal)',
                       animation: 'spin 0.8s linear infinite',
                     }} />
@@ -163,7 +163,7 @@ export default function OrdersPage() {
                         </span>
                         <div style={{ marginTop: 4 }}>
                           {o.paymentStatus === 'Paid' ? (
-                            <span style={{ background: 'rgba(25, 211, 197, 0.1)', color: 'var(--teal)', padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700 }}>PAID</span>
+                            <span style={{ background: 'rgba(201,168,76, 0.1)', color: 'var(--teal)', padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700 }}>PAID</span>
                           ) : (
                             <span style={{ background: 'rgba(255, 255, 255, 0.05)', color: 'var(--muted)', padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700 }}>{o.paymentStatus?.toUpperCase() || 'PENDING'}</span>
                           )}

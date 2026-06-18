@@ -3,6 +3,8 @@
 import type { Metadata } from 'next';
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { db } from '@/lib/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
@@ -31,10 +33,20 @@ export default function ContactPage() {
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setSubmitting(true);
-    // Simulate submission — replace with your actual API/email service
-    await new Promise(resolve => setTimeout(resolve, 1200));
-    setSubmitting(false);
-    setSubmitted(true);
+    try {
+      await addDoc(collection(db, 'messages'), {
+        ...form,
+        createdAt: new Date().toISOString(),
+        status: 'unread'
+      });
+      setSubmitted(true);
+      setForm({ name: '', email: '', phone: '', subject: '', message: '' });
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('Failed to send message. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const contactMethods = [
@@ -57,8 +69,8 @@ export default function ContactPage() {
         </svg>
       ),
       label: 'Email Us',
-      value: 'support@timelion.in',
-      href: 'mailto:support@timelion.in',
+      value: 'srtarun66@gmail.com',
+      href: 'mailto:srtarun66@gmail.com',
       sub: 'We reply within 24 hours',
     },
     {
@@ -143,7 +155,7 @@ export default function ContactPage() {
                 background: 'rgba(37,211,102,0.06)', border: '1px solid rgba(37,211,102,0.2)',
                 borderRadius: 20,
               }}>
-                <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
+                <div style={{ fontSize: 48, marginBottom: 16 }}></div>
                 <h3 style={{ fontFamily: 'var(--font-head)', fontSize: 22, marginBottom: 12, color: '#25D366' }}>Message Sent!</h3>
                 <p style={{ color: 'var(--text-muted)', fontSize: 15 }}>Thank you! We&apos;ll reply to your message within 24 hours. For faster support, WhatsApp us directly.</p>
                 <a
@@ -283,9 +295,9 @@ export default function ContactPage() {
               <h3 style={{ fontFamily: 'var(--font-head)', fontSize: 18, marginBottom: 16 }}>Quick Links</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {[
-                  { label: '📦 Track Your Order', href: '/orders' },
-                  { label: '❓ FAQ & Returns', href: '/faq' },
-                  { label: '⌚ Shop Watches', href: '/category/classic-metal' },
+                  { label: 'Track Your Order', href: '/orders' },
+                  { label: 'FAQ & Returns', href: '/faq' },
+                  { label: 'Shop Watches', href: '/category/classic-metal' },
                 ].map(l => (
                   <Link key={l.label} href={l.href} style={{
                     display: 'flex', alignItems: 'center', gap: 10,

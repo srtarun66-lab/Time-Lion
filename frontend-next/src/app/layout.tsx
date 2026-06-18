@@ -116,7 +116,6 @@ const organizationSchema = {
     },
   ],
   sameAs: [
-    'https://www.instagram.com/timelionin',
     'https://wa.me/917418719580',
   ],
 };

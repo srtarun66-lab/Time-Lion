@@ -36,11 +36,11 @@ const sections = [
   },
   {
     title: '7. Your Rights',
-    content: `You have the right to access, correct, or delete your personal data. You can also request to stop receiving marketing communications at any time by contacting us at support@timelion.in or via WhatsApp at +91 74187 19580.`,
+    content: `You have the right to access, correct, or delete your personal data. You can also request to stop receiving marketing communications at any time by contacting us at srtarun66@gmail.com or via WhatsApp at +91 74187 19580.`,
   },
   {
     title: '8. Contact Us',
-    content: `If you have questions about this Privacy Policy, please contact us at support@timelion.in or call +91 74187 19580. We are committed to addressing your concerns promptly.`,
+    content: `If you have questions about this Privacy Policy, please contact us at srtarun66@gmail.com or call +91 74187 19580. We are committed to addressing your concerns promptly.`,
   },
 ];
 
@@ -69,7 +69,7 @@ export default function PrivacyPolicyPage() {
         <div style={{ marginTop: 48, padding: '24px 28px', borderRadius: 16, background: 'rgba(201,168,76,0.05)', border: '1px solid rgba(201,168,76,0.15)' }}>
           <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>
             📧 Questions? Email us at{' '}
-            <a href="mailto:support@timelion.in" style={{ color: 'var(--gold)', textDecoration: 'none' }}>support@timelion.in</a>
+            <a href="mailto:srtarun66@gmail.com" style={{ color: 'var(--gold)', textDecoration: 'none' }}>srtarun66@gmail.com</a>
             {' '}or WhatsApp{' '}
             <a href="https://wa.me/917418719580" style={{ color: '#25D366', textDecoration: 'none' }} target="_blank" rel="noopener noreferrer">+91 74187 19580</a>
           </p>

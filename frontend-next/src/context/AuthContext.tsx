@@ -20,6 +20,7 @@ export interface User {
   pincode: string;
   state: string;
   email: string;
+  photoURL?: string;
 }
 
 interface AuthContextType {
@@ -45,13 +46,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const userRef = doc(db, 'users', fbUser.uid);
           const userSnap = await getDoc(userRef);
           if (userSnap.exists()) {
-            setUser(userSnap.data() as User);
+            const data = userSnap.data() as User;
+            if (fbUser.photoURL && data.photoURL !== fbUser.photoURL) {
+              data.photoURL = fbUser.photoURL;
+              await setDoc(userRef, { photoURL: fbUser.photoURL }, { merge: true });
+            }
+            setUser(data);
           } else {
             const newUser: User = {
               id: fbUser.uid,
               fullName: fbUser.displayName || '',
               email: fbUser.email || '',
               phone: fbUser.phoneNumber || '',
+              photoURL: fbUser.photoURL || '',
               address: '',
               city: '',
               pincode: '',

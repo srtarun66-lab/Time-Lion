@@ -79,12 +79,12 @@ export default function ImageCropModal({ file, onComplete, onCancel }: Props) {
     ctx.drawImage(img, sx, sy, sw, sh, crop.x, crop.y, crop.size, crop.size);
 
     // Border
-    ctx.strokeStyle = 'rgba(25,211,197,0.9)';
+    ctx.strokeStyle = 'rgba(201,168,76,0.9)';
     ctx.lineWidth = 2;
     ctx.strokeRect(crop.x, crop.y, crop.size, crop.size);
 
     // Grid lines
-    ctx.strokeStyle = 'rgba(25,211,197,0.3)';
+    ctx.strokeStyle = 'rgba(201,168,76,0.3)';
     ctx.lineWidth = 1;
     for (let i = 1; i < 3; i++) {
       const x = crop.x + (crop.size / 3) * i;
@@ -99,11 +99,11 @@ export default function ImageCropModal({ file, onComplete, onCancel }: Props) {
       [crop.x, crop.y], [crop.x + crop.size - H, crop.y],
       [crop.x, crop.y + crop.size - H], [crop.x + crop.size - H, crop.y + crop.size - H]
     ];
-    ctx.fillStyle = 'var(--teal, #19D3C5)';
+    ctx.fillStyle = 'var(--teal, #C9A84C)';
     corners.forEach(([cx, cy]) => ctx.fillRect(cx, cy, H, H));
 
     // Resize handle (bottom-right)
-    ctx.fillStyle = '#19D3C5';
+    ctx.fillStyle = '#C9A84C';
     ctx.beginPath();
     ctx.arc(crop.x + crop.size, crop.y + crop.size, 8, 0, Math.PI * 2);
     ctx.fill();
@@ -250,7 +250,7 @@ export default function ImageCropModal({ file, onComplete, onCancel }: Props) {
 
         {/* Status */}
         {status && (
-          <div style={{ fontSize: 12, color: status.startsWith('✓') ? 'var(--success, #00cc88)' : 'var(--teal, #19D3C5)', marginBottom: 16, textAlign: 'center' }}>
+          <div style={{ fontSize: 12, color: status.startsWith('✓') ? 'var(--success, #00cc88)' : 'var(--teal, #C9A84C)', marginBottom: 16, textAlign: 'center' }}>
             {status}
           </div>
         )}
@@ -275,7 +275,7 @@ export default function ImageCropModal({ file, onComplete, onCancel }: Props) {
             onClick={handleCropAndUpload}
             disabled={uploading || !displayW}
             style={{
-              background: uploading ? 'rgba(25,211,197,0.5)' : 'var(--teal, #19D3C5)',
+              background: uploading ? 'rgba(201,168,76,0.5)' : 'var(--teal, #C9A84C)',
               border: 'none',
               color: '#000',
               padding: '11px 28px', borderRadius: 10,

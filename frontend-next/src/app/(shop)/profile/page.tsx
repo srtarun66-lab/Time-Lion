@@ -28,7 +28,7 @@ const OTHER_CITIES = [
 ];
 
 export default function ProfilePage() {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, firebaseUser } = useAuth();
   const { cart, wishlist } = useCart();
   const router = useRouter();
   
@@ -130,8 +130,12 @@ export default function ProfilePage() {
         }}>
           <div className="profile-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ width: 50, height: 50, borderRadius: '50%', background: 'rgba(201,168,76,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--teal)' }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <div style={{ width: 50, height: 50, borderRadius: '50%', background: 'rgba(201,168,76,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--teal)', overflow: 'hidden' }}>
+                {firebaseUser?.photoURL ? (
+                  <img src={firebaseUser.photoURL} alt="Profile" referrerPolicy="no-referrer" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                )}
               </div>
               <h3 style={{ fontFamily: 'var(--font-head)', fontSize: 24, margin: 0 }}>Profile Information</h3>
             </div>

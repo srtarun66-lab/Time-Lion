@@ -12,7 +12,7 @@ export default function ProductDetailsPage() {
   const id = params?.id as string;
   const router = useRouter();
   const { addToCart, setCheckoutProduct } = useCart();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, firebaseUser } = useAuth();
 
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -23,6 +23,7 @@ export default function ProductDetailsPage() {
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [cartAdded, setCartAdded] = useState(false);
+  const [photoMap, setPhotoMap] = useState<Record<string, string>>({});
 
   const fetchProduct = async () => {
     try {
@@ -82,6 +83,25 @@ export default function ProductDetailsPage() {
     if (user && id) checkPurchase();
   }, [user, id]);
 
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const usersSnap = await getDocs(collection(db, 'users'));
+        const map: Record<string, string> = {};
+        usersSnap.forEach(doc => {
+          const data = doc.data();
+          if (data.email && data.photoURL) {
+            map[data.email] = data.photoURL;
+          }
+        });
+        setPhotoMap(map);
+      } catch (err) {
+        console.error('Error fetching users photoMap:', err);
+      }
+    };
+    fetchUsers();
+  }, []);
+
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -92,6 +112,7 @@ export default function ProductDetailsPage() {
         email: user.email || user.phone,
         rating,
         comment,
+        photoURL: firebaseUser?.photoURL || null,
         isVerifiedPurchase: hasPurchased,
         createdAt: new Date().toISOString()
       };
@@ -232,9 +253,13 @@ export default function ProductDetailsPage() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                           {/* Avatar */}
-                          <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, var(--teal), #10b981)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20, fontWeight: 700, fontFamily: 'var(--font-head)' }}>
-                            {initials}
-                          </div>
+                          {(rev.photoURL || (rev.email && photoMap[rev.email])) ? (
+                            <img src={rev.photoURL || photoMap[rev.email]} alt={rev.userName} referrerPolicy="no-referrer" style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', background: 'var(--bg2)' }} />
+                          ) : (
+                            <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, var(--teal), #10b981)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20, fontWeight: 700, fontFamily: 'var(--font-head)' }}>
+                              {initials}
+                            </div>
+                          )}
                           <div>
                             <div style={{ fontWeight: 600, fontSize: 17, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'var(--font-head)' }}>
                               {rev.userName}

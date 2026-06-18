@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 
-const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'jofrashivaa@gmail.com';
+const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'srtarun66@gmail.com';
 
 export default function AdminAuth({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -67,7 +67,7 @@ export default function AdminAuth({ children }: { children: React.ReactNode }) {
       {/* Background glow */}
       <div style={{
         position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-        width: '60vw', height: '60vw', background: 'radial-gradient(circle, rgba(25,211,197,0.05) 0%, transparent 60%)',
+        width: '60vw', height: '60vw', background: 'radial-gradient(circle, rgba(201,168,76,0.05) 0%, transparent 60%)',
         pointerEvents: 'none'
       }} />
 

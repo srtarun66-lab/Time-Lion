@@ -48,7 +48,7 @@ const sections = [
   },
   {
     title: '10. Contact Us',
-    content: `For any questions about these Terms & Conditions, please contact us at support@timelion.in or call +91 74187 19580. Our team is available Monday–Saturday, 9AM–7PM IST.`,
+    content: `For any questions about these Terms & Conditions, please contact us at srtarun66@gmail.com or call +91 74187 19580. Our team is available Monday–Saturday, 9AM–7PM IST.`,
   },
 ];
 
@@ -77,7 +77,7 @@ export default function TermsPage() {
         <div style={{ marginTop: 48, padding: '24px 28px', borderRadius: 16, background: 'rgba(201,168,76,0.05)', border: '1px solid rgba(201,168,76,0.15)' }}>
           <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>
             📧 Questions? Email us at{' '}
-            <a href="mailto:support@timelion.in" style={{ color: 'var(--gold)', textDecoration: 'none' }}>support@timelion.in</a>
+            <a href="mailto:srtarun66@gmail.com" style={{ color: 'var(--gold)', textDecoration: 'none' }}>srtarun66@gmail.com</a>
             {' '}or WhatsApp{' '}
             <a href="https://wa.me/917418719580" style={{ color: '#25D366', textDecoration: 'none' }} target="_blank" rel="noopener noreferrer">+91 74187 19580</a>
           </p>

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart, Product } from '@/context/CartContext';
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({ product, isCombo = false }: { product: Product, isCombo?: boolean }) {
   const router = useRouter();
   const { addToCart, setCheckoutProduct, toggleWishlist, isInWishlist } = useCart();
   const liked = isInWishlist(product._id);
@@ -60,6 +60,7 @@ export default function ProductCard({ product }: { product: Product }) {
           style={{
             width: '100%', height: '100%', objectFit: 'cover',
             transition: 'transform 0.6s ease',
+            aspectRatio: isCombo ? '16/9' : '4/5'
           }}
         />
         {/* Image overlay gradient */}
@@ -125,13 +126,32 @@ export default function ProductCard({ product }: { product: Product }) {
         )}
 
         {/* Price */}
-        <div className="product-price" style={{ marginTop: 10 }}>
-          <div className="price-main">
-            ₹{product.price.toLocaleString('en-IN')}
-          </div>
-          {product.originalPrice && (
-            <div className="price-orig">
-              ₹{product.originalPrice.toLocaleString('en-IN')}
+        <div className="product-price" style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {isCombo && product.originalPrice ? (
+            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 12, padding: '12px 16px', marginTop: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--text-sub)', marginBottom: 8 }}>
+                <span>Individual Price</span>
+                <span>₹{(product.originalPrice / 2).toLocaleString('en-IN')} each</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--text-muted)', textDecoration: 'line-through', marginBottom: 8 }}>
+                <span>Combined Price</span>
+                <span>₹{product.originalPrice.toLocaleString('en-IN')}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: 8, marginTop: 4 }}>
+                <span style={{ fontSize: 14, color: 'var(--gold)', fontWeight: 600 }}>Combo Offer</span>
+                <span className="price-main" style={{ fontSize: 20 }}>₹{product.price.toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+              <div className="price-main">
+                ₹{product.price.toLocaleString('en-IN')}
+              </div>
+              {product.originalPrice && (
+                <div className="price-orig">
+                  ₹{product.originalPrice.toLocaleString('en-IN')}
+                </div>
+              )}
             </div>
           )}
         </div>
