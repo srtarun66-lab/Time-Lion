@@ -45,8 +45,8 @@ export default async function Home() {
 
   // Format customer count nicely
   const customerDisplay = totalOrders >= 1000
-    ? `${(totalOrders / 1000).toFixed(1).replace(/\.0$/, '')}K+`
-    : totalOrders > 0 ? `${totalOrders}+` : '0';
+    ? `${(totalOrders / 1000).toFixed(1).replace(/\.0$/, '')}K`
+    : totalOrders > 0 ? `${totalOrders}` : '0';
 
   const categories = [
     { href: '/category/classic-metal', icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="7"/><polyline points="12 9 12 12 13.5 13.5"/><path d="M16.51 17.35l-.35 3.83a2 2 0 0 1-2 1.82H9.83a2 2 0 0 1-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 0 1 9.83 1h4.35a2 2 0 0 1 2 1.82l.35 3.83"/></svg>, name: 'Classic Metal', count: allProducts.filter(p => p.category === 'classic-metal').length, desc: 'Timeless steel & titanium' },
@@ -153,7 +153,7 @@ export default async function Home() {
             }}>
               {[
               { num: customerDisplay, label: 'Happy Customers' },
-                { num: `${totalModels}+`, label: 'Watch Models' },
+                { num: `${totalModels}`, label: 'Watch Models' },
                 { num: `${avgRating}★`, label: 'Avg Rating' },
               ].map((s) => (
                 <div key={s.label} style={{ textAlign: 'left' }}>
