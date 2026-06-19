@@ -90,19 +90,6 @@ export default function OrdersPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <button 
-            onClick={() => fetchOrders(statusFilter, true)}
-            style={{
-              background: 'rgba(255,255,255,0.05)', color: 'var(--text)', border: '1px solid var(--border)',
-              padding: '10px 16px', borderRadius: 8, cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 600,
-              transition: '0.2s', display: 'flex', alignItems: 'center', gap: 8
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-            Refresh
-          </button>
         </div>
       </div>
 
