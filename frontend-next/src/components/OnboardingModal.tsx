@@ -35,8 +35,8 @@ export default function OnboardingModal() {
   const [pincode, setPincode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'srtarun66@gmail.com';
-  const isAdmin = user && user.email === ADMIN_EMAIL;
+  const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'srtarun66@gmail.com,jofrashivaa@gmail.com').split(',').map(e => e.trim());
+  const isAdmin = user && user.email && ADMIN_EMAILS.includes(user.email);
 
   // Derived state to check if we need to show the modal
   const needsOnboarding = user && !isAdmin && (!user.phone || !user.address || !user.pincode);

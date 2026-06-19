@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 
-const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'srtarun66@gmail.com';
+const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'srtarun66@gmail.com,jofrashivaa@gmail.com').split(',').map(e => e.trim());
 
 export default function AdminAuth({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -14,7 +14,7 @@ export default function AdminAuth({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        if (user.email === ADMIN_EMAIL) {
+        if (user.email && ADMIN_EMAILS.includes(user.email)) {
           setIsAuthenticated(true);
         } else {
           // If a non-admin logs in, immediately sign them out
