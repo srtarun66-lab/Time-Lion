@@ -13,6 +13,7 @@ export interface Product {
   badge?: string;
   rating?: number;
   category?: string;
+  stock?: number;
 }
 
 export interface CartItem extends Product {
@@ -114,6 +115,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addToCart = (product: Product) => {
     const existing = cart.find((i) => i._id === product._id);
     if (existing) {
+      if (product.category === 'special-combo') {
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Combo offer is limited to 1 per order.', type: 'error' } }));
+        return;
+      }
       saveCart(
         cart.map((i) =>
           i._id === product._id ? { ...i, quantity: i.quantity + 1 } : i
@@ -129,6 +134,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const changeQty = (id: string, delta: number) => {
+    const item = cart.find(i => i._id === id);
+    if (item && item.category === 'special-combo' && delta > 0) {
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Combo offer is limited to 1 per order.', type: 'error' } }));
+      return;
+    }
     saveCart(
       cart.map((i) => {
         if (i._id === id) {

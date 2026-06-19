@@ -10,36 +10,57 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [deletingProduct, setDeletingProduct] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
 
-  const fetchProducts = async () => {
-    setLoading(true);
-    try {
-      const snap = await getDocs(collection(db, 'products'));
-      const list: any[] = [];
-      snap.forEach(d => list.push({ _id: d.id, ...d.data() }));
-      setProducts(list);
-    } catch {
-      window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Failed to load products.', type: 'error' } }));
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => { fetchProducts(); }, []);
+  useEffect(() => {
+    import('firebase/firestore').then(({ onSnapshot, collection }) => {
+      setLoading(true);
+      const unsubscribe = onSnapshot(collection(db, 'products'), (snap) => {
+        const list: any[] = [];
+        snap.forEach(d => list.push({ _id: d.id, ...d.data() }));
+        setProducts(list);
+        setLoading(false);
+      }, (err) => {
+        console.error(err);
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Failed to load products.', type: 'error' } }));
+        setLoading(false);
+      });
+      return () => unsubscribe();
+    });
+  }, []);
 
   const removeProduct = async (id: string) => {
     try {
       await deleteDoc(doc(db, 'products', id));
       window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Product removed.', type: 'success' } }));
-      fetchProducts();
     } catch {
       window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Server error.', type: 'error' } }));
     }
   };
 
+  const filteredProducts = selectedCategory 
+    ? products.filter(p => p.category === selectedCategory)
+    : products;
+
   return (
     <div className="fade-up">
-      <div className="pg-title">Products</div>
-      <div className="pg-sub">All products currently in the store</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24 }}>
+        <div>
+          <div className="pg-title">Products</div>
+          <div className="pg-sub">All products currently in the store</div>
+        </div>
+        <select 
+          className="admin-input" 
+          value={selectedCategory} 
+          onChange={e => setSelectedCategory(e.target.value)}
+          style={{ width: 220, padding: '10px 14px' }}
+        >
+          <option value="">All Categories</option>
+          <option value="classic-metal">Classic Metal</option>
+          <option value="digital-mania">Digital Mania</option>
+          <option value="special-combo">Special Combo</option>
+        </select>
+      </div>
 
       <div className="cbox" style={{ minHeight: 'calc(100vh - 220px)' }}>
         <div className="tbl-wrap">
@@ -70,7 +91,7 @@ export default function ProductsPage() {
                     <div style={{ color: 'var(--muted)', fontSize: 12 }}>Loading products…</div>
                   </td>
                 </tr>
-              ) : products.length === 0 ? (
+              ) : filteredProducts.length === 0 ? (
                 <tr>
                   <td colSpan={8} style={{ textAlign: 'center', height: '60vh', color: 'var(--muted)' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 24 }}>
@@ -81,13 +102,13 @@ export default function ProductsPage() {
                       </svg>
                       <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--text)', letterSpacing: '0.05em' }}>No Products Found</div>
                       <div style={{ fontSize: 16, maxWidth: 450, margin: '0 auto', lineHeight: 1.5 }}>
-                        Your store is currently empty. Go ahead and add some amazing watches to your collection!
+                        {selectedCategory ? 'No products found in this category.' : 'Your store is currently empty. Go ahead and add some amazing watches to your collection!'}
                       </div>
                     </div>
                   </td>
                 </tr>
               ) : (
-                products.map((p) => {
+                filteredProducts.map((p) => {
                   const imgSrc = p.image || '';
                   return (
                     <tr key={p._id}>
@@ -181,7 +202,7 @@ export default function ProductsPage() {
         <EditProductModal
           product={editingProduct}
           onClose={() => setEditingProduct(null)}
-          onSave={() => { fetchProducts(); setEditingProduct(null); }}
+          onSave={() => { setEditingProduct(null); }}
         />
       )}
       {deletingProduct && (

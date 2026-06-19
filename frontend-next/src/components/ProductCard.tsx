@@ -38,18 +38,23 @@ export default function ProductCard({ product, isCombo = false }: { product: Pro
   const halfStar = rating % 1 >= 0.5;
 
   const badgeClass = disc > 20 ? 'badge-sale' : product.badge ? 'badge-new' : '';
+  const isOutOfStock = product.stock !== undefined && product.stock <= 0;
 
   return (
     <div className="product-card" onClick={() => router.push(`/product/${product._id}`)}>
 
       {/* ── Badges ── */}
-      {product.badge && (
-        <div className={`product-badge badge-new`}>{product.badge}</div>
-      )}
-      {disc > 0 && (
-        <div className="product-badge badge-sale" style={{ left: 'auto', right: 12 }}>
-          -{disc}%
-        </div>
+      {!isOutOfStock && (
+        <>
+          {product.badge && (
+            <div className={`product-badge badge-new`}>{product.badge}</div>
+          )}
+          {disc > 0 && (
+            <div className="product-badge badge-sale" style={{ left: 'auto', right: 12 }}>
+              -{disc}%
+            </div>
+          )}
+        </>
       )}
 
       {/* ── Image ── */}
@@ -60,9 +65,31 @@ export default function ProductCard({ product, isCombo = false }: { product: Pro
           style={{
             width: '100%', height: '100%', objectFit: 'cover',
             transition: 'transform 0.6s ease',
-            aspectRatio: isCombo ? '16/9' : '4/5'
+            aspectRatio: isCombo ? '16/9' : '4/5',
+            filter: isOutOfStock ? 'grayscale(0.3) brightness(0.6)' : 'none'
           }}
         />
+        {/* Out of Stock Overlay */}
+        {isOutOfStock && (
+          <div style={{
+            position: 'absolute', inset: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(0,0,0,0.5)', zIndex: 4,
+            backdropFilter: 'blur(2px)'
+          }}>
+            <span style={{
+              color: '#ffffff',
+              fontFamily: 'var(--font-head)',
+              fontSize: '20px',
+              fontWeight: 800,
+              letterSpacing: '0.15em',
+              textShadow: '0 4px 12px rgba(0,0,0,0.8), 0 0 4px rgba(0,0,0,0.9)',
+              textTransform: 'uppercase'
+            }}>
+              Out of Stock
+            </span>
+          </div>
+        )}
         {/* Image overlay gradient */}
         <div style={{
           position: 'absolute', bottom: 0, left: 0, right: 0, height: '45%',
@@ -158,37 +185,48 @@ export default function ProductCard({ product, isCombo = false }: { product: Pro
 
         {/* Buttons */}
         <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-          <button
-            className={`btn-cart ${cartAdded ? 'cart-added-anim' : ''}`}
-            onClick={handleAddToCart}
-            style={{ flex: 1 }}
-          >
-            {cartAdded ? '✓ Added' : '+ Add to Cart'}
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); setCheckoutProduct(product); router.push('/checkout'); }}
-            style={{
-              flex: 1,
-              background: 'linear-gradient(135deg, var(--gold), var(--gold-dim))',
-              color: '#0a0803', border: 'none',
-              padding: '12px 10px', borderRadius: 10,
-              fontFamily: 'var(--font-head)',
-              fontWeight: 600, fontSize: 13,
-              cursor: 'pointer',
-              transition: 'var(--transition)',
-              boxShadow: '0 4px 16px rgba(201,168,76,0.2)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(201,168,76,0.35)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 16px rgba(201,168,76,0.2)';
-            }}
-          >
-            Buy Now
-          </button>
+          {isOutOfStock ? (
+            <button
+              disabled
+              style={{ flex: 1, background: 'rgba(255,255,255,0.05)', color: 'var(--muted)', border: '1px solid var(--border)', padding: '12px 10px', borderRadius: 10, fontFamily: 'var(--font-head)', fontWeight: 600, fontSize: 13, cursor: 'not-allowed' }}
+            >
+              Out of Stock
+            </button>
+          ) : (
+            <>
+              <button
+                className={`btn-cart ${cartAdded ? 'cart-added-anim' : ''}`}
+                onClick={handleAddToCart}
+                style={{ flex: 1 }}
+              >
+                {cartAdded ? '✓ Added' : '+ Add to Cart'}
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setCheckoutProduct(product); router.push('/checkout'); }}
+                style={{
+                  flex: 1,
+                  background: 'linear-gradient(135deg, var(--gold), var(--gold-dim))',
+                  color: '#0a0803', border: 'none',
+                  padding: '12px 10px', borderRadius: 10,
+                  fontFamily: 'var(--font-head)',
+                  fontWeight: 600, fontSize: 13,
+                  cursor: 'pointer',
+                  transition: 'var(--transition)',
+                  boxShadow: '0 4px 16px rgba(201,168,76,0.2)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(201,168,76,0.35)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(201,168,76,0.2)';
+                }}
+              >
+                Buy Now
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

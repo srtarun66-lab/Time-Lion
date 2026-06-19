@@ -92,7 +92,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      
+      const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'srtarun66@gmail.com,jofrashivaa@gmail.com').split(',').map(e => e.trim());
+      
+      if (result.user.email && ADMIN_EMAILS.includes(result.user.email)) {
+        await signOut(auth);
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Admin accounts cannot be used to shop. Please login via the Admin Portal.', type: 'error' } }));
+        return;
+      }
+
       window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Logged in with Google', type: 'success' } }));
     } catch (error: any) {
       console.error(error);

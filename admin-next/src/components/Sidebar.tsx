@@ -91,7 +91,7 @@ export default function Sidebar() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 12,
-                color: isActive ? 'var(--teal)' : 'var(--muted)',
+                color: isActive ? 'var(--teal)' : 'var(--text-sub)',
                 background: isActive ? 'rgba(201,168,76,0.07)' : 'transparent',
                 textDecoration: 'none',
                 fontWeight: 600,
@@ -118,12 +118,12 @@ export default function Sidebar() {
           rel="noopener noreferrer"
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            color: 'var(--muted)', fontSize: 12, fontWeight: 600,
+            color: 'var(--text-sub)', fontSize: 12, fontWeight: 600,
             textDecoration: 'none', letterSpacing: '0.03em',
             transition: 'color 0.2s'
           }}
           onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--teal)')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--muted)')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-sub)')}
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           Back to Store

@@ -15,6 +15,7 @@ export default function ProductDetailsPage() {
   const { user, isAuthenticated, firebaseUser } = useAuth();
 
   const [product, setProduct] = useState<any>(null);
+  const [comboItems, setComboItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasPurchased, setHasPurchased] = useState(false);
 
@@ -30,7 +31,19 @@ export default function ProductDetailsPage() {
       const docRef = doc(db, 'products', id);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        setProduct({ _id: docSnap.id, ...docSnap.data() });
+        const data = docSnap.data();
+        setProduct({ _id: docSnap.id, ...data });
+
+        if (data.category === 'special-combo' && data.comboProductIds && data.comboProductIds.length > 0) {
+          const cItems = [];
+          for (const cId of data.comboProductIds) {
+            const cSnap = await getDoc(doc(db, 'products', cId));
+            if (cSnap.exists()) {
+              cItems.push({ _id: cSnap.id, ...cSnap.data() });
+            }
+          }
+          setComboItems(cItems);
+        }
       } else {
         setProduct(null);
       }
@@ -212,6 +225,23 @@ export default function ProductDetailsPage() {
           <p style={{ fontSize: 16, color: 'var(--text-sub)', lineHeight: 1.8, marginBottom: 40 }}>
             {product.description || 'No description available for this product.'}
           </p>
+
+          {product.category === 'special-combo' && comboItems.length > 0 && (
+            <div style={{ marginBottom: 40 }}>
+              <h3 style={{ fontSize: 16, color: 'var(--text)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}>This Combo Includes:</h3>
+              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                {comboItems.map((item, i) => (
+                  <div key={i} onClick={() => router.push(`/product/${item._id}`)} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(255,255,255,0.03)', padding: 12, borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', flex: '1 1 200px', cursor: 'pointer', transition: '0.2s' }} onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'} onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}>
+                    <img src={item.image.startsWith('http') ? item.image : item.image} alt={item.name} style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8 }} />
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>{item.name}</div>
+                      <div style={{ color: 'var(--text-sub)', fontSize: 12, marginTop: 4 }}>₹{item.price.toLocaleString('en-IN')}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div style={{ display: 'flex', gap: 16 }}>
             <button 

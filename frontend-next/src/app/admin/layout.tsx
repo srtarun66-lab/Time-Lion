@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import './admin.css';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 import Sidebar from '@/components/admin/Sidebar';
 import AdminAuth from '@/components/admin/AdminAuth';
 

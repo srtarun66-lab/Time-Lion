@@ -1,5 +1,8 @@
 import React from 'react';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
@@ -16,7 +19,9 @@ async function fetchDashboardData() {
     ordersSnap.forEach(doc => {
       totalOrders++;
       const data = doc.data();
-      revenue += (data.totalAmount || 0);
+      if (data.status === 'Delivered') {
+        revenue += (data.totalAmount || 0);
+      }
       if (data.status === 'Processing') processingCount++;
       ordersList.push({ _id: doc.id, ...data });
     });

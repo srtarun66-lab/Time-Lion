@@ -29,6 +29,8 @@ export default function AddProductPage() {
   const [category, setCategory] = useState('');
   const [comboP1, setComboP1] = useState('');
   const [comboP2, setComboP2] = useState('');
+  const [isP1Open, setIsP1Open] = useState(false);
+  const [isP2Open, setIsP2Open] = useState(false);
   const [suggestedPrice, setSuggestedPrice] = useState<number | ''>('');
 
   useEffect(() => {
@@ -201,7 +203,6 @@ export default function AddProductPage() {
                 <option value="classic-metal">Classic Metal</option>
                 <option value="digital-mania">Digital Mania</option>
                 <option value="special-combo">Special Combo</option>
-                <option value="funky">Funky</option>
               </select>
             </LabeledField>
           </div>
@@ -209,20 +210,89 @@ export default function AddProductPage() {
           {category === 'special-combo' && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, marginTop: 18, padding: 16, background: 'rgba(201,168,76,0.05)', borderRadius: 12, border: '1px solid rgba(201,168,76,0.1)' }}>
               <LabeledField label="Select Product 1 *">
-                <select className="admin-input" value={comboP1} onChange={e => setComboP1(e.target.value)} required>
-                  <option value="">— First Combo Item —</option>
-                  {allProducts.filter(p => p.category !== 'special-combo').map(p => (
-                    <option key={p.id} value={p.id}>{p.name} - ₹{p.price}</option>
-                  ))}
-                </select>
+                <div style={{ position: 'relative' }}>
+                  <div 
+                    onClick={() => { setIsP1Open(!isP1Open); setIsP2Open(false); }}
+                    className="admin-input" 
+                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                  >
+                    {comboP1 ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {(() => {
+                           const p = allProducts.find(x => x.id === comboP1);
+                           return p ? (
+                             <>
+                               {p.image && <img src={p.image.startsWith('http') ? p.image : p.image} alt="" style={{ width: 20, height: 20, borderRadius: 4, objectFit: 'cover' }} />}
+                               <span>{p.name} - ₹{p.price}</span>
+                             </>
+                           ) : '— First Combo Item —';
+                        })()}
+                      </div>
+                    ) : (
+                      <span style={{ color: 'var(--muted)' }}>— First Combo Item —</span>
+                    )}
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+                  </div>
+                  {isP1Open && (
+                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, maxHeight: 200, overflowY: 'auto', boxShadow: '0 10px 24px rgba(0,0,0,0.4)' }}>
+                      {allProducts.filter(p => p.category !== 'special-combo').map(p => (
+                        <div 
+                          key={p.id}
+                          onClick={() => { setComboP1(p.id); setIsP1Open(false); }}
+                          style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, background: comboP1 === p.id ? 'rgba(201,168,76,0.1)' : 'transparent', borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+                          onMouseEnter={(e) => { if(comboP1 !== p.id) e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                          onMouseLeave={(e) => { if(comboP1 !== p.id) e.currentTarget.style.background = 'transparent' }}
+                        >
+                          {p.image && <img src={p.image.startsWith('http') ? p.image : p.image} alt="" style={{ width: 24, height: 24, borderRadius: 4, objectFit: 'cover' }} />}
+                          <span>{p.name} - ₹{p.price}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </LabeledField>
+              
               <LabeledField label="Select Product 2 *">
-                <select className="admin-input" value={comboP2} onChange={e => setComboP2(e.target.value)} required>
-                  <option value="">— Second Combo Item —</option>
-                  {allProducts.filter(p => p.category !== 'special-combo' && p.id !== comboP1).map(p => (
-                    <option key={p.id} value={p.id}>{p.name} - ₹{p.price}</option>
-                  ))}
-                </select>
+                <div style={{ position: 'relative' }}>
+                  <div 
+                    onClick={() => { setIsP2Open(!isP2Open); setIsP1Open(false); }}
+                    className="admin-input" 
+                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                  >
+                    {comboP2 ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {(() => {
+                           const p = allProducts.find(x => x.id === comboP2);
+                           return p ? (
+                             <>
+                               {p.image && <img src={p.image.startsWith('http') ? p.image : p.image} alt="" style={{ width: 20, height: 20, borderRadius: 4, objectFit: 'cover' }} />}
+                               <span>{p.name} - ₹{p.price}</span>
+                             </>
+                           ) : '— Second Combo Item —';
+                        })()}
+                      </div>
+                    ) : (
+                      <span style={{ color: 'var(--muted)' }}>— Second Combo Item —</span>
+                    )}
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+                  </div>
+                  {isP2Open && (
+                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, marginTop: 4, maxHeight: 200, overflowY: 'auto', boxShadow: '0 10px 24px rgba(0,0,0,0.4)' }}>
+                      {allProducts.filter(p => p.category !== 'special-combo' && p.id !== comboP1).map(p => (
+                        <div 
+                          key={p.id}
+                          onClick={() => { setComboP2(p.id); setIsP2Open(false); }}
+                          style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, background: comboP2 === p.id ? 'rgba(201,168,76,0.1)' : 'transparent', borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+                          onMouseEnter={(e) => { if(comboP2 !== p.id) e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                          onMouseLeave={(e) => { if(comboP2 !== p.id) e.currentTarget.style.background = 'transparent' }}
+                        >
+                          {p.image && <img src={p.image.startsWith('http') ? p.image : p.image} alt="" style={{ width: 24, height: 24, borderRadius: 4, objectFit: 'cover' }} />}
+                          <span>{p.name} - ₹{p.price}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </LabeledField>
               <div style={{ gridColumn: '1 / -1', fontSize: 12, color: 'var(--muted)' }}>
                 {comboP1 && comboP2 && suggestedPrice ? `Calculated Combo Price: ₹${suggestedPrice} (You can edit the Sale Price below to offer a discount!)` : 'Select two products to calculate combined price.'}

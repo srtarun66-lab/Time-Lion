@@ -156,19 +156,21 @@ export default function CartSidebar() {
                       </div>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, marginTop: 12, background: 'rgba(0,0,0,0.2)', padding: '4px 8px', borderRadius: 20, width: 'fit-content' }}>
                         <button
+                          disabled={item.category === 'special-combo'}
                           onClick={() => changeQty(item._id, -1)}
-                          style={{ background: 'none', border: 'none', color: 'var(--text-sub)', width: 24, height: 24, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, transition: 'color 0.2s' }}
-                          onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-                          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-sub)'}
+                          style={{ background: 'none', border: 'none', color: item.category === 'special-combo' ? 'rgba(255,255,255,0.2)' : 'var(--text-sub)', width: 24, height: 24, cursor: item.category === 'special-combo' ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, transition: 'color 0.2s' }}
+                          onMouseEnter={e => { if(item.category !== 'special-combo') e.currentTarget.style.color = '#fff'; }}
+                          onMouseLeave={e => { if(item.category !== 'special-combo') e.currentTarget.style.color = 'var(--text-sub)'; }}
                         >
                           &minus;
                         </button>
                         <span style={{ fontWeight: 600, fontSize: 13, minWidth: 20, textAlign: 'center', color: 'var(--text)' }}>{item.quantity}</span>
                         <button
+                          disabled={item.category === 'special-combo'}
                           onClick={() => changeQty(item._id, 1)}
-                          style={{ background: 'none', border: 'none', color: 'var(--text-sub)', width: 24, height: 24, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, transition: 'color 0.2s' }}
-                          onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-                          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-sub)'}
+                          style={{ background: 'none', border: 'none', color: item.category === 'special-combo' ? 'rgba(255,255,255,0.2)' : 'var(--text-sub)', width: 24, height: 24, cursor: item.category === 'special-combo' ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, transition: 'color 0.2s' }}
+                          onMouseEnter={e => { if(item.category !== 'special-combo') e.currentTarget.style.color = '#fff'; }}
+                          onMouseLeave={e => { if(item.category !== 'special-combo') e.currentTarget.style.color = 'var(--text-sub)'; }}
                         >
                           +
                         </button>

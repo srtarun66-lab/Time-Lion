@@ -13,10 +13,10 @@
   --bg4:        #1a1710;
 
   --text:       #f5f0e8;
-  --text-sub:   #a89878;
-  --muted:      #5a4f3a;
-
-  --border:     rgba(201, 168, 76, 0.08);
+  --text-sub:   #d4c8b0;
+  --muted:      #9c907a;
+  
+  --border:     rgba(201, 168, 76, 0.15);
 
   --danger:     #ff4466;
   --danger-dim: rgba(255,68,102,0.12);
@@ -85,7 +85,7 @@ body {
   font-size: 32px;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: var(--text);
+  color: var(--gold);
   margin-bottom: 4px;
 }
 .pg-sub {
@@ -115,7 +115,7 @@ body {
   font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.08em;
-  color: var(--text-sub);
+  color: var(--gold);
   margin: 0;
 }
 

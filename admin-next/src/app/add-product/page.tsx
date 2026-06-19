@@ -128,7 +128,6 @@ export default function AddProductPage() {
                 <option value="classic-metal">Classic Metal</option>
                 <option value="digital-mania">Digital Mania</option>
                 <option value="special-combo">Special Combo</option>
-                <option value="funky">Funky</option>
               </select>
             </LabeledField>
           </div>

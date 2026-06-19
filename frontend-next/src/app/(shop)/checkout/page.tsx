@@ -16,7 +16,7 @@ declare global {
 export default function CheckoutPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { cart, checkoutProduct, clearCart } = useCart();
+  const { cart, checkoutProduct, clearCart, changeQty, setCheckoutProduct } = useCart();
   const [loading, setLoading] = useState(false);
   
   // Steps: 1 = Address, 2 = Payment
@@ -76,12 +76,40 @@ export default function CheckoutPage() {
   }, []);
 
   const items = checkoutProduct ? [checkoutProduct] : cart;
-  if (items.length === 0) {
-    if (typeof window !== 'undefined') {
+
+  useEffect(() => {
+    if (items.length === 0) {
       router.push('/');
     }
+  }, [items.length, router]);
+
+  if (items.length === 0) {
     return null;
   }
+
+  const handleQtyChange = (id: string, delta: number) => {
+    const item = items.find(i => i._id === id);
+    if (!item) return;
+
+    const currentQty = 'quantity' in item ? (item as any).quantity : 1;
+    const newQty = Math.max(1, currentQty + delta);
+
+    if (delta > 0 && item.category === 'special-combo') {
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Combo offer is limited to 1 per order.', type: 'error' } }));
+      return;
+    }
+
+    if (delta > 0 && item.stock !== undefined && newQty > item.stock) {
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: `Only ${item.stock} pieces of ${item.name} available.`, type: 'error' } }));
+      return;
+    }
+
+    if (checkoutProduct && checkoutProduct._id === id) {
+      setCheckoutProduct({ ...checkoutProduct, quantity: newQty } as any);
+    } else {
+      changeQty(id, delta);
+    }
+  };
 
   const orderItems = items.map(item => ({
     ...item,
@@ -90,8 +118,19 @@ export default function CheckoutPage() {
 
   const total = orderItems.reduce((s, i) => s + i.price * i.quantity, 0);
 
+  const checkStock = () => {
+    for (const item of orderItems) {
+      if (item.stock !== undefined && item.quantity > item.stock) {
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: `Only ${item.stock} pieces of ${item.name} available. Please reduce quantity.`, type: 'error' } }));
+        return false;
+      }
+    }
+    return true;
+  };
+
   const handleAddressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!checkStock()) return;
     if (!formData.name || !formData.phone || !formData.address) {
       window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Please fill all required fields.', type: 'error' } }));
       return;
@@ -132,7 +171,7 @@ export default function CheckoutPage() {
           const orderPayload = {
             ...orderDetails,
             userId: user?.id || null,
-            status: 'Confirmed',
+            status: 'Processing',
             paymentStatus: 'Paid',
             createdAt: new Date().toISOString(),
             orderId: 'ORD-' + Math.floor(100000 + Math.random() * 900000)
@@ -222,7 +261,7 @@ export default function CheckoutPage() {
                       Change Address
                     </button>
                     <button 
-                      onClick={() => setStep(2)} 
+                      onClick={() => { if(checkStock()) setStep(2); }} 
                       className="btn-primary" 
                       style={{ flex: 2, padding: 16, fontSize: 16 }}
                     >
@@ -328,8 +367,15 @@ export default function CheckoutPage() {
                   <img src={item.image.startsWith('http') ? item.image : item.image} alt={item.name} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)' }} />
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', fontFamily: 'var(--font-head)' }}>{item.name}</div>
-                    <div style={{ color: 'var(--text-sub)', fontSize: 13, marginTop: 6 }}>Qty: {item.quantity}</div>
-                    <div style={{ color: 'var(--teal)', fontWeight: 700, fontSize: 15, marginTop: 6 }}>₹{(item.price * item.quantity).toLocaleString('en-IN')}</div>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <button type="button" disabled={item.category === 'special-combo'} onClick={() => handleQtyChange(item._id, -1)} style={{ background: 'transparent', border: 'none', color: item.category === 'special-combo' ? 'rgba(255,255,255,0.2)' : 'var(--text)', cursor: item.category === 'special-combo' ? 'not-allowed' : 'pointer', padding: '4px 10px', fontSize: 16 }}>-</button>
+                        <span style={{ fontSize: 13, minWidth: 20, textAlign: 'center', fontWeight: 600 }}>{item.quantity}</span>
+                        <button type="button" disabled={item.category === 'special-combo'} onClick={() => handleQtyChange(item._id, 1)} style={{ background: 'transparent', border: 'none', color: item.category === 'special-combo' ? 'rgba(255,255,255,0.2)' : 'var(--text)', cursor: item.category === 'special-combo' ? 'not-allowed' : 'pointer', padding: '4px 10px', fontSize: 16 }}>+</button>
+                      </div>
+                      <div style={{ color: 'var(--teal)', fontWeight: 700, fontSize: 15 }}>₹{(item.price * item.quantity).toLocaleString('en-IN')}</div>
+                    </div>
                   </div>
                 </div>
               ))}
