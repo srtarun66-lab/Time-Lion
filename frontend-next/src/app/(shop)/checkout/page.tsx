@@ -19,8 +19,9 @@ export default function CheckoutPage() {
   const { cart, checkoutProduct, clearCart, changeQty, setCheckoutProduct } = useCart();
   const [loading, setLoading] = useState(false);
   
-  // Steps: 1 = Address, 2 = Payment
+  // Steps: 1 = Address, 2 = Payment, 3 = Receipt
   const [step, setStep] = useState(1);
+  const [placedOrder, setPlacedOrder] = useState<any>(null);
   const [addressMode, setAddressMode] = useState<'SAVED' | 'NEW'>('NEW');
 
   // Form State for NEW address mode
@@ -163,46 +164,86 @@ export default function CheckoutPage() {
 
     try {
       setLoading(true);
+
+      // 1. Create order on server
+      const res = await fetch('/api/create-razorpay-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: total })
+      });
       
-      // DUMMY PAYMENT BYPASS FOR TESTING
-      setTimeout(async () => {
-        try {
-          // Direct Firebase Write Instead of API Verify Route
-          const orderPayload = {
-            ...orderDetails,
-            userId: user?.id || null,
-            status: 'Processing',
-            paymentStatus: 'Paid',
-            createdAt: new Date().toISOString(),
-            orderId: 'ORD-' + Math.floor(100000 + Math.random() * 900000)
-          };
+      const orderData = await res.json();
+      if (!res.ok) {
+        throw new Error(orderData.error || 'Failed to initialize payment');
+      }
 
-          const docRef = await addDoc(collection(db, 'orders'), orderPayload);
+      // 2. Open Razorpay checkout
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'Time Lion',
+        description: 'Order Payment',
+        order_id: orderData.id,
+        handler: async function (response: any) {
+          // Verify & Save Order on success
+          try {
+            const orderPayload = {
+              ...orderDetails,
+              userId: user?.id || null,
+              status: 'Processing',
+              paymentStatus: 'Paid',
+              paymentId: response.razorpay_payment_id,
+              razorpayOrderId: response.razorpay_order_id,
+              createdAt: new Date().toISOString(),
+              orderId: 'ORD-' + Math.floor(100000 + Math.random() * 900000)
+            };
 
-          // Update user details if logged in and address mode is NEW
-          if (user && user.id && addressMode === 'NEW') {
-            const userRef = doc(db, 'users', user.id);
-            await updateDoc(userRef, {
-              phone: finalAddress.phone || user.phone || '',
-              address: finalAddress.address || user.address || '',
-              city: finalAddress.city || user.city || '',
-              pincode: finalAddress.pincode || user.pincode || ''
-            }).catch(e => console.error("Failed to update user profile", e));
+            await addDoc(collection(db, 'orders'), orderPayload);
+
+            // Update user details if logged in and address mode is NEW
+            if (user && user.id && addressMode === 'NEW') {
+              const userRef = doc(db, 'users', user.id);
+              await updateDoc(userRef, {
+                phone: finalAddress.phone || user.phone || '',
+                address: finalAddress.address || user.address || '',
+                city: finalAddress.city || user.city || '',
+                pincode: finalAddress.pincode || user.pincode || ''
+              }).catch(e => console.error("Failed to update user profile", e));
+            }
+
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: `Payment Successful! Order: ${orderPayload.orderId}`, type: 'success' } }));
+            if (!checkoutProduct) clearCart();
+            setPlacedOrder(orderPayload);
+            setStep(3);
+          } catch (err) {
+            console.error(err);
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Server error saving order details.', type: 'error' } }));
           }
-
-          window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: `Dummy Payment Verified! Order: ${orderPayload.orderId}`, type: 'success' } }));
-          if (!checkoutProduct) clearCart();
-          router.push('/orders');
-        } catch (err) {
-           console.error(err);
-           window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Server error during dummy verification.', type: 'error' } }));
-        } finally {
-          setLoading(false);
+        },
+        prefill: {
+          name: finalAddress.name,
+          email: finalAddress.email,
+          contact: finalAddress.phone,
+        },
+        theme: {
+          color: '#19D3C5', // var(--teal)
+        },
+        modal: {
+          ondismiss: function() {
+            setLoading(false);
+          }
         }
-      }, 1500);
+      };
 
-    } catch (err) {
-      window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: 'Payment initialization failed.', type: 'error' } }));
+      const rzp1 = new window.Razorpay(options);
+      rzp1.on('payment.failed', function (response: any) {
+        window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: `Payment Failed: ${response.error.description}`, type: 'error' } }));
+      });
+      rzp1.open();
+
+    } catch (err: any) {
+      window.dispatchEvent(new CustomEvent('showToast', { detail: { msg: err.message || 'Payment initialization failed.', type: 'error' } }));
       setLoading(false);
     }
   };
@@ -219,9 +260,15 @@ export default function CheckoutPage() {
           <div style={{ width: 32, height: 32, borderRadius: '50%', background: step >= 2 ? 'var(--teal)' : 'var(--bg3)', color: step >= 2 ? '#000' : 'var(--text-sub)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>2</div>
           <span style={{ fontWeight: 600 }}>Payment</span>
         </div>
+        <div style={{ width: 40, height: 2, background: step >= 3 ? 'var(--teal)' : 'rgba(255,255,255,0.1)' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: step >= 3 ? 'var(--teal)' : 'var(--text-muted)' }}>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: step >= 3 ? 'var(--teal)' : 'var(--bg3)', color: step >= 3 ? '#000' : 'var(--text-sub)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>3</div>
+          <span style={{ fontWeight: 600 }}>Receipt</span>
+        </div>
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 60, alignItems: 'flex-start' }}>
+      {step < 3 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 60, alignItems: 'flex-start' }}>
         {/* Left Form Area (Now visually right) */}
         <div style={{ flex: '1 1 540px', order: 2 }}>
           {step === 1 && (
@@ -397,6 +444,49 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+      )}
+
+      {step === 3 && placedOrder && (
+        <div className="fade-up" style={{ maxWidth: 640, margin: '0 auto', background: 'var(--bg2)', borderRadius: 24, padding: 40, border: '1px solid var(--border)', boxShadow: '0 30px 60px rgba(0,0,0,0.4)', textAlign: 'center' }}>
+          <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'rgba(25, 211, 197, 0.1)', color: 'var(--teal)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          </div>
+          <h2 style={{ fontFamily: 'var(--font-head)', fontSize: 32, color: 'var(--text)', marginBottom: 8 }}>Payment Successful!</h2>
+          <p style={{ color: 'var(--text-sub)', fontSize: 16, marginBottom: 32 }}>Thank you for your purchase. Your order has been placed securely.</p>
+          
+          <div style={{ background: 'var(--bg3)', borderRadius: 16, padding: 24, textAlign: 'left', marginBottom: 32, border: '1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--border)', paddingBottom: 16, marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Order ID</div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)' }}>{placedOrder.orderId}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Amount Paid</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--teal)' }}>₹{placedOrder.totalAmount.toLocaleString('en-IN')}</div>
+              </div>
+            </div>
+            
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: 'var(--text)' }}>Items Ordered:</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {placedOrder.items.map((item: any, idx: number) => (
+                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <img src={item.image.startsWith('http') ? item.image : item.image} alt={item.name} style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover', border: '1px solid rgba(255,255,255,0.05)' }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>{item.name}</div>
+                    <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Qty: {item.quantity}</div>
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 600 }}>₹{(item.price * item.quantity).toLocaleString('en-IN')}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <button onClick={() => router.push('/orders')} className="btn-primary" style={{ padding: '16px 32px', fontSize: 16, width: '100%' }}>
+            View Total Orders &rarr;
+          </button>
+        </div>
+      )}
+      
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
