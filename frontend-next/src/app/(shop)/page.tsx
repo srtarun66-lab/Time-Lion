@@ -12,7 +12,7 @@ import { collection, getDocs, query, orderBy, getCountFromServer } from 'firebas
 export const metadata: Metadata = {
   title: 'Premium Watches Online India | Time Lion – Luxury Timepieces',
   description:
-    'Shop premium analog and digital watches at Time Lion. Explore Classic Metal, Digital Mania & Special Combo collections. 1-Year Warranty, Free Shipping above ₹999. COD Available.',
+    'Shop premium analog and digital watches at Time Lion. Explore Classic Metal, Digital Mania & Special Combo collections. 1-Year Warranty, Free Shipping above ₹999.',
   alternates: {
     canonical: 'https://www.timelion.in',
   },
@@ -64,32 +64,6 @@ async function getUsersPhotoMap(): Promise<Record<string, string>> {
   }
 }
 
-const testimonials = [
-  {
-    name: 'Arjun K.',
-    location: 'Chennai, Tamil Nadu',
-    rating: 5,
-    text: 'Absolutely stunning watch. The quality exceeded my expectations — the finish is premium and it keeps perfect time. Perfect for formal occasions!',
-    tag: '✓ Verified Buyer',
-    photoURL: null,
-  },
-  {
-    name: 'Priya M.',
-    location: 'Bangalore, Karnataka',
-    rating: 5,
-    text: 'Ordered the combo set — great value for the price. Fast delivery in 2 days and the packaging was beautiful. Will definitely order again!',
-    tag: '✓ Verified Buyer',
-    photoURL: null,
-  },
-  {
-    name: 'Ravi S.',
-    location: 'Mumbai, Maharashtra',
-    rating: 5,
-    text: 'The Digital Mania collection is absolutely fire. Bold, stylish, and super accurate. My friends keep asking where I got it from. 10/10 recommend!',
-    tag: '✓ Verified Buyer',
-    photoURL: null,
-  },
-];
 
 export default async function Home() {
   const [allProducts, siteStats, photoMap] = await Promise.all([getAllProducts(), getSiteStats(), getUsersPhotoMap()]);
@@ -99,10 +73,19 @@ export default async function Home() {
   const totalModels = allProducts.length;
   const totalOrders = siteStats.totalOrders;
 
-  const ratedProducts = allProducts.filter((p: any) => p.rating > 0);
-  const avgRating = ratedProducts.length > 0
-    ? (ratedProducts.reduce((sum: number, p: any) => sum + p.rating, 0) / ratedProducts.length).toFixed(1)
-    : '4.8';
+  // Avg rating — use p.rating (stored per-product aggregate) as primary,
+  // fall back to computing directly from reviews array
+  const allReviewRatings = allProducts.flatMap((p: any) =>
+    (p.reviews || []).map((r: any) => r.rating).filter((n: any) => typeof n === 'number' && n > 0)
+  );
+  const totalReviewCount = allReviewRatings.length;
+
+  const ratedProducts = allProducts.filter((p: any) => typeof (p as any).rating === 'number' && (p as any).rating > 0);
+  const realAvgRating: string | null = totalReviewCount > 0
+    ? (allReviewRatings.reduce((a: number, b: number) => a + b, 0) / totalReviewCount).toFixed(1)
+    : ratedProducts.length > 0
+      ? (ratedProducts.reduce((sum: number, p: any) => sum + p.rating, 0) / ratedProducts.length).toFixed(1)
+      : null;
 
   const customerDisplay = totalOrders >= 1000
     ? `${(totalOrders / 1000).toFixed(1).replace(/\.0$/, '')}K+`
@@ -117,7 +100,7 @@ export default async function Home() {
     text: r.comment || '',
     photoURL: r.photoURL || (r.email ? photoMap[r.email] : null) || null,
     tag: r.isVerifiedPurchase ? '✓ Verified Buyer' : 'Customer',
-  })) : testimonials;
+  })) : [];
 
   const categories = [
     {
@@ -270,9 +253,9 @@ export default async function Home() {
               paddingTop: 24, borderTop: '1px solid var(--border)',
             }}>
               {[
-                { num: customerDisplay, label: 'Happy Customers' },
                 { num: `${totalModels}`, label: 'Watch Models' },
-                { num: `${avgRating}★`, label: 'Avg Rating' },
+                { num: '2–5 Days', label: 'Avg Delivery' },
+                ...(realAvgRating ? [{ num: `${realAvgRating}★`, label: `Avg Rating (${totalReviewCount})` }] : []),
               ].map((s) => (
                 <div key={s.label} style={{ textAlign: 'left' }}>
                   <div style={{ fontFamily: 'var(--font-head)', fontSize: 26, fontWeight: 800, color: 'var(--gold)', letterSpacing: '-0.02em' }}>{s.num}</div>
@@ -354,88 +337,11 @@ export default async function Home() {
 
 
 
-      {/* ═══════════════════════════════════════════════════════════
-          FEATURED PRODUCTS
-      ═══════════════════════════════════════════════════════════ */}
-      <ScrollReveal>
-        <section className="section" style={{ paddingTop: 0 }} aria-labelledby="featured-products-heading">
-          <div className="section-header" style={{ marginBottom: 48 }}>
-            <h2 id="featured-products-heading" style={{ fontSize: 'clamp(28px, 3.5vw, 46px)', letterSpacing: '-0.02em', fontFamily: 'var(--font-head)' }}>
-              Featured <span className="text-teal">Products</span>
-            </h2>
-            <p>Handpicked timepieces just for you</p>
-          </div>
-
-          {featuredProducts.length > 0 ? (
-            <div className="product-grid-3">
-              {featuredProducts.map((product) => (
-                <ProductCard key={product._id} product={product} isCombo={product.category === 'special-combo'} />
-              ))}
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '60px', background: 'var(--bg2)', borderRadius: 16, border: '1px solid var(--border)' }}>
-              Check back soon for new arrivals.
-            </div>
-          )}
-
-          <div style={{ textAlign: 'center', marginTop: 48 }}>
-            <Link href="/category/classic-metal" className="btn-outline">
-              View All Watches
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-              </svg>
-            </Link>
-          </div>
-        </section>
-      </ScrollReveal>
-
-
-      {/* ═══════════════════════════════════════════════════════════
-          NEW ARRIVALS BANNER
-      ═══════════════════════════════════════════════════════════ */}
-      <ScrollReveal>
-        <section className="arrival-section" style={{ maxWidth: 1400, margin: '0 auto' }} aria-labelledby="new-arrivals-heading">
-          <div className="arrival-banner-inner" style={{
-            borderRadius: 28,
-            background: 'linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%)',
-            border: '1px solid var(--border)',
-            position: 'relative', overflow: 'hidden',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            flexWrap: 'wrap', gap: 40,
-          }}>
-            <div style={{
-              position: 'absolute', right: '5%', top: '50%', transform: 'translateY(-50%)',
-              width: 360, height: 360, borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(201,168,76,0.1) 0%, transparent 70%)',
-              filter: 'blur(40px)', pointerEvents: 'none',
-            }} aria-hidden="true" />
-            <div style={{ position: 'relative', zIndex: 1, maxWidth: 560 }}>
-              <h2 id="new-arrivals-heading" style={{ fontSize: 'clamp(32px, 4vw, 54px)', letterSpacing: '-0.02em', fontFamily: 'var(--font-head)', marginBottom: 18 }}>
-                New Arrivals <span className="text-teal">— This Season.</span>
-              </h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: 15, fontWeight: 300, lineHeight: 1.8, marginBottom: 36 }}>
-                Fresh timepieces just added to our collection. Premium quality, limited stock. Don&apos;t miss out.
-              </p>
-              <Link href={newestProduct ? `/product/${newestProduct._id}` : '/category/digital-mania'} className="btn-gold">Explore Now →</Link>
-            </div>
-            <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', flexShrink: 0 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={newestProduct ? (newestProduct.image.startsWith('http') ? newestProduct.image : newestProduct.image) : 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=600&auto=format&fit=crop'}
-                alt={newestProduct ? `${newestProduct.name} - New Arrival` : 'New Premium Watch Arrival'}
-                loading="lazy"
-                style={{ width: 280, height: 280, objectFit: 'cover', borderRadius: '24px', border: '1px solid var(--border)', boxShadow: '0 24px 48px rgba(0,0,0,0.4)', display: 'block', marginBottom: 20 }}
-              />
-              <div style={{ color: 'var(--gold)', fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 14, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Limited Stock</div>
-            </div>
-          </div>
-        </section>
-      </ScrollReveal>
-
 
       {/* ═══════════════════════════════════════════════════════════
           TESTIMONIALS
       ═══════════════════════════════════════════════════════════ */}
+      {displayReviews.length > 0 && (
       <ScrollReveal>
         <section className="section" style={{ paddingTop: 0 }} aria-labelledby="testimonials-heading">
           <div className="section-header" style={{ marginBottom: 56 }}>
@@ -472,6 +378,7 @@ export default async function Home() {
           </div>
         </section>
       </ScrollReveal>
+      )}
 
 
       {/* ═══════════════════════════════════════════════════════════
@@ -581,10 +488,9 @@ export default async function Home() {
           <h2 id="stats-heading" className="sr-only">Our Numbers</h2>
           <div className="stats-section">
             {[
-              { num: customerDisplay, label: 'Happy Customers', icon: '' },
               { num: `${totalModels}+`, label: 'Watch Models', icon: '' },
-              { num: `${avgRating}★`, label: 'Average Rating', icon: '' },
-              { num: '2 Days', label: 'Avg Delivery Time', icon: '' },
+              { num: '2–5 Days', label: 'Avg Delivery Time', icon: '' },
+              ...(realAvgRating ? [{ num: `${realAvgRating}★`, label: `Avg Rating (${totalReviewCount} reviews)`, icon: '' }] : []),
             ].map(s => (
               <div key={s.label} className="stat-block">
                 <div style={{ fontSize: 28, marginBottom: 8 }} aria-hidden="true">{s.icon}</div>

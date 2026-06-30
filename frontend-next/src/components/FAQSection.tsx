@@ -21,7 +21,7 @@ const faqs = [
   {
     question: 'Do you offer Cash on Delivery (COD)?',
     answer:
-      'Yes, we offer Cash on Delivery (COD) for all orders across India. You can also pay securely online via UPI, Credit/Debit Card, or Net Banking. All online transactions are 100% secure.',
+      'No, we do not offer Cash on Delivery (COD). All orders must be paid online via UPI, Credit/Debit Card, or Net Banking before confirmation. All online transactions are 100% secure.',
   },
   {
     question: 'Are your watches genuine and authentic?',

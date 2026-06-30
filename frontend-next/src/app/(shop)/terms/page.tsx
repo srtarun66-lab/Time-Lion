@@ -20,7 +20,7 @@ const sections = [
   },
   {
     title: '3. Orders & Payment',
-    content: `Orders are confirmed once payment is received (for online payments) or upon order placement (for Cash on Delivery). We accept UPI, Credit/Debit Cards, Net Banking, and COD. We reserve the right to cancel or refuse orders in cases of suspected fraud or unavailability.`,
+    content: `Orders are confirmed once payment is received. We accept UPI, Credit/Debit Cards, and Net Banking. We do not offer Cash on Delivery (COD). All payments must be completed online prior to order confirmation. We reserve the right to cancel or refuse orders in cases of suspected fraud or unavailability.`,
   },
   {
     title: '4. Delivery Policy',
@@ -28,27 +28,23 @@ const sections = [
   },
   {
     title: '5. Returns & Refunds',
-    content: `We accept returns within 7 days of delivery if the product is unused, undamaged, and in original packaging. To initiate a return, contact us via WhatsApp or email with your order ID. Refunds are processed within 5-7 business days after we receive the returned product. COD orders will receive bank transfer refunds.`,
+    content: `We accept only reasonable refund requests on a case-by-case basis. To initiate a refund, you must contact us via WhatsApp with clear images of the product showing the issue, and you will receive a verification call from our team. Refunds are accepted only if the product has no physical damage and is verified through our review process. We reserve the right to decline refund requests that do not meet our verification criteria.`,
   },
   {
     title: '6. Warranty',
     content: `All Time Lion watches come with a 1-year manufacturer warranty against manufacturing defects. The warranty does not cover: (a) physical damage, scratches, or breakage; (b) water damage for non-water-resistant models; (c) battery replacement; or (d) normal wear and tear.`,
   },
   {
-    title: '7. Intellectual Property',
-    content: `All content on www.timelion.in — including logos, product images, text, and design — is the property of Time Lion. You may not reproduce, distribute, or use our content without prior written permission.`,
-  },
-  {
-    title: '8. Limitation of Liability',
+    title: '7. Limitation of Liability',
     content: `Time Lion is not liable for indirect, incidental, or consequential damages arising from the use of our products or website. Our maximum liability is limited to the purchase price of the product in question.`,
   },
   {
-    title: '9. Governing Law',
+    title: '8. Governing Law',
     content: `These terms are governed by the laws of India. Any disputes arising shall be subject to the exclusive jurisdiction of courts in Tamil Nadu, India.`,
   },
   {
-    title: '10. Contact Us',
-    content: `For any questions about these Terms & Conditions, please contact us at srtarun66@gmail.com or call +91 74187 19580. Our team is available Monday–Saturday, 9AM–7PM IST.`,
+    title: '9. Contact Us',
+    content: `For any questions about these Terms & Conditions, please contact us at srtarun66@gmail.com or call +91 74187 19580 / +91 81247 30074. Our team is available Monday–Saturday, 9AM–7PM IST.`,
   },
 ];
 
