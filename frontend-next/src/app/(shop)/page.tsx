@@ -301,6 +301,28 @@ export default async function Home() {
 
 
       {/* ═══════════════════════════════════════════════════════════
+          NEW ARRIVALS
+      ═══════════════════════════════════════════════════════════ */}
+      <ScrollReveal>
+        <section className="section" style={{ paddingTop: 0 }} aria-labelledby="new-arrivals-heading">
+          <div className="section-title-row">
+            <div>
+              <h2 id="new-arrivals-heading" style={{ fontSize: 'clamp(28px, 3.5vw, 46px)', letterSpacing: '-0.02em', fontFamily: 'var(--font-head)' }}>
+                New <span className="text-teal">Arrivals</span>
+              </h2>
+            </div>
+            <span className="section-title-sub">Our latest additions</span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+            {allProducts.slice(0, 9).map((p) => (
+              <ProductCard key={p._id} product={p} />
+            ))}
+          </div>
+        </section>
+      </ScrollReveal>
+
+      {/* ═══════════════════════════════════════════════════════════
           SHOP BY STYLE
       ═══════════════════════════════════════════════════════════ */}
       <ScrollReveal>
